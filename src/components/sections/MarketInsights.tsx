@@ -42,7 +42,7 @@ export default function MarketInsights() {
   return (
     <section className="py-16 sm:py-24 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <Card className="max-w-2xl mx-auto shadow-lg">
+        <Card className="max-w-2xl mx-auto shadow-lg rounded-xl overflow-hidden">
           <CardHeader className="text-center">
             <div className="inline-flex items-center justify-center bg-accent/10 p-3 rounded-full mx-auto mb-4">
                <Lightbulb className="h-10 w-10 text-accent" />
@@ -68,7 +68,7 @@ export default function MarketInsights() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" disabled={isLoading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-3">
+                <Button type="submit" variant="accent" disabled={isLoading} className="w-full text-lg py-3">
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />

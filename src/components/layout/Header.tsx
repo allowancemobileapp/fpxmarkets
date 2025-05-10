@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -6,6 +5,8 @@ import { Coins, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { useState } from "react";
+import { ThemeToggleButton } from "@/components/ThemeToggleButton";
+import { Separator } from "@/components/ui/separator";
 
 const navItems = [
   { href: "/quick-start", label: "Quick Start" },
@@ -14,8 +15,6 @@ const navItems = [
   { href: "/trading", label: "Trading" },
   { href: "/markets", label: "Markets" },
   { href: "/pricing", label: "Pricing" },
-  // Platforms is duplicated, let's assume it's a sub-category or a typo. I'll keep one.
-  // { href: "/platforms", label: "Platforms" }, 
   { href: "/partners", label: "Partners" },
   { href: "/resources", label: "Resources" },
   { href: "/contact", label: "Contact" },
@@ -42,10 +41,9 @@ export default function Header() {
               {item.label}
             </Link>
           ))}
-          {/* Example of a dropdown for more items - simplified for now */}
           {navItems.length > 5 && (
              <Link
-              href="/more" // Placeholder link
+              href="/more" 
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
             >
               More...
@@ -54,6 +52,7 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <ThemeToggleButton />
           <Button variant="outline" size="sm" className="hidden md:inline-flex">
             Login
           </Button>
@@ -68,7 +67,7 @@ export default function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-full max-w-xs bg-background p-6">
-              <div className="flex flex-col space-y-5">
+              <div className="flex flex-col space-y-5 h-full">
                 <div className="flex justify-between items-center">
                    <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
                     <Coins className="h-7 w-7 text-primary" />
@@ -81,19 +80,21 @@ export default function Header() {
                       </Button>
                   </SheetClose>
                 </div>
-                <nav className="flex flex-col space-y-3">
+                <Separator />
+                <nav className="flex flex-col space-y-3 flex-grow">
                   {navItems.map((item) => (
                     <Link
                       key={item.label}
                       href={item.href}
-                      className="text-base font-medium text-foreground transition-colors hover:text-primary"
+                      className="text-base font-medium text-foreground transition-colors hover:text-primary py-1.5"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       {item.label}
                     </Link>
                   ))}
                 </nav>
-                <div className="flex flex-col space-y-3 pt-4 border-t">
+                <Separator />
+                <div className="flex flex-col space-y-3 pt-4">
                    <Button variant="outline" className="w-full">
                       Login
                     </Button>
