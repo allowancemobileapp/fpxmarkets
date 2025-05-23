@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { usePathname } from 'next/navigation'; // Import usePathname
 
 const navItems = [
   { href: "/quick-start", label: "Quick Start" },
@@ -35,10 +36,16 @@ const navItems = [
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout, loading } = useAuth();
+  const pathname = usePathname(); // Get current pathname
 
   const getInitials = (name?: string) => {
     if (!name) return "FP";
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  }
+
+  // If on a dashboard page, don't render this header
+  if (pathname.startsWith('/dashboard')) {
+    return null;
   }
 
   const displayedNavItems = navItems.filter(item => !item.authRequired || (item.authRequired && user));
@@ -65,7 +72,7 @@ export default function Header() {
           ))}
           {displayedNavItems.length > desktopNavLimit && (
              <Link
-              href="/more" 
+              href="/more"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
             >
               More...
@@ -85,7 +92,7 @@ export default function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={user.profilePictureUrl || `https://placehold.co/100x100.png?text=${getInitials(user.username)}`} alt={user.username} data-ai-hint="profile avatar" />
+                    <AvatarImage src={user.profilePictureUrl || `https://placehold.co/100x100.png?text=${getInitials(user.username)}`} alt={user.username || 'User Profile'} data-ai-hint="profile avatar" />
                     <AvatarFallback>{getInitials(user.username)}</AvatarFallback>
                   </Avatar>
                 </Button>
