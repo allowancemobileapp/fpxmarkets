@@ -30,9 +30,9 @@ export default function CopyTradingPage() {
           <CardTitle className="text-xl">Discover Top Traders</CardTitle>
           <CardDescription>Find experienced traders and copy their strategies automatically.</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {mockTraders.map(trader => (
-            <Card key={trader.id} className="overflow-hidden flex flex-col hover:shadow-xl transition-shadow duration-300">
+            <Card key={trader.id} className="overflow-hidden flex flex-col hover:shadow-xl transition-shadow duration-300 bg-card">
               <div className="relative h-40 w-full">
                  <Image 
                   src={trader.image} 
@@ -52,7 +52,7 @@ export default function CopyTradingPage() {
                      <AvatarImage src={`https://placehold.co/80x80.png?text=${trader.avatarSeed}`} alt={trader.username} data-ai-hint="trader avatar" />
                      <AvatarFallback>{trader.avatarSeed}</AvatarFallback>
                    </Avatar>
-                   <Badge variant={trader.risk === 'Low' ? 'secondary' : trader.risk === 'Medium' ? 'default' : 'destructive'} className="capitalize">
+                   <Badge variant={trader.risk === 'Low' ? 'secondary' : trader.risk === 'Medium' ? 'default' : 'destructive'} className="capitalize text-xs px-2 py-1">
                      <Shield className="mr-1 h-3 w-3" /> {trader.risk} Risk
                    </Badge>
                 </div>
@@ -62,13 +62,13 @@ export default function CopyTradingPage() {
                   <span className="text-muted-foreground">{trader.copiers.toLocaleString()} Copiers</span>
                 </div>
               </CardContent>
-              <CardFooter className="p-4 bg-muted/30 border-t">
+              <CardFooter className="p-4 bg-muted/30 border-t mt-auto">
                 <div className="flex w-full gap-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Eye className="mr-2 h-4 w-4" /> View Profile
+                  <Button variant="outline" size="sm" className="flex-1 text-xs sm:text-sm">
+                    <Eye className="mr-1.5 h-4 w-4" /> View Profile
                   </Button>
-                  <Button variant="accent" size="sm" className="flex-1">
-                    <Copy className="mr-2 h-4 w-4" /> Copy Trader
+                  <Button variant="accent" size="sm" className="flex-1 text-xs sm:text-sm">
+                    <Copy className="mr-1.5 h-4 w-4" /> Copy
                   </Button>
                 </div>
               </CardFooter>
@@ -79,4 +79,3 @@ export default function CopyTradingPage() {
     </div>
   );
 }
-
