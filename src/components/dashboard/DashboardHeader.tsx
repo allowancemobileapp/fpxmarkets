@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -34,6 +35,9 @@ import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+
+// Define Home icon alias immediately after imports
+const Home = LayoutDashboard; 
 
 const sidebarNavItems = [
   { href: '/dashboard', label: 'Home', icon: Home },
@@ -174,6 +178,3 @@ export default function DashboardHeader() {
     </header>
   );
 }
-
-// Placeholder Home icon if not already imported
-const Home = LayoutDashboard; 
