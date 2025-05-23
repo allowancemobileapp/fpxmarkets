@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SignupFormSchema, type SignupFormValues, type User, type AccountType } from '@/lib/types';
-import { handleSignup } from '@/lib/actions'; // Simulated action
+import { handleSignup } from '@/lib/actions'; 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,9 +18,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CheckCircle } from 'lucide-react';
+import { tradingPlans, type TradingPlan } from '@/config/tradingPlans';
 
-
-const accountTypes: AccountType[] = ['Beginner', 'Personal', 'Professional', 'Corporate'];
 
 export default function SignupForm() {
   const { toast } = useToast();
@@ -39,23 +39,19 @@ export default function SignupForm() {
       phoneNumber: '',
       password: '',
       confirmPassword: '',
-      accountType: 'Personal',
+      accountType: 'Personal', // Default value
       country: '',
     },
   });
 
   async function onSubmit(values: SignupFormValues) {
     setIsLoading(true);
-    // Simulate API call
-    const result = await handleSignup(values); // This action is simulated
+    const result = await handleSignup(values);
     setIsLoading(false);
 
     if (result.success && result.user) {
-      // Don't toast here, show confirmation message instead
-      setConfirmedEmail(result.user.email);
+      setConfirmedEmail(result.user.email as string);
       setShowConfirmation(true);
-      // The signup function in AuthContext will handle user state and initial redirect
-      // For now, we defer calling signup context until "Proceed"
     } else {
       toast({
         title: 'Signup Failed',
@@ -66,11 +62,9 @@ export default function SignupForm() {
   }
 
   const handleProceedAfterConfirmation = () => {
-    // This is where we'd typically rely on Firebase to have created the user.
-    // For simulation, we'll use the data from the form submission.
     const formValues = form.getValues();
     const simulatedUser: User = {
-      id: Date.now().toString(), // Simulated ID
+      id: Date.now().toString(), 
       email: formValues.email,
       username: formValues.username,
       firstName: formValues.firstName,
@@ -78,10 +72,10 @@ export default function SignupForm() {
       accountType: formValues.accountType,
       phoneNumber: formValues.phoneNumber,
       country: formValues.country,
-      profileCompleted: true, // Mark as completed after this form
-      pinSetupCompleted: false, // PIN not yet set
+      profileCompleted: true, 
+      pinSetupCompleted: false, 
     };
-    signup(simulatedUser); // Update AuthContext and redirect to PIN setup
+    signup(simulatedUser); 
   };
 
   if (showConfirmation) {
@@ -113,14 +107,25 @@ export default function SignupForm() {
                 <RadioGroup
                   onValueChange={field.onChange}
                   defaultValue={field.value}
-                  className="flex flex-col space-y-1 sm:flex-row sm:space-y-0 sm:space-x-4"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
                 >
-                  {accountTypes.map(type => (
-                    <FormItem key={type} className="flex items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value={type} />
-                      </FormControl>
-                      <FormLabel className="font-normal">{type}</FormLabel>
+                  {tradingPlans.map((plan: TradingPlan) => (
+                    <FormItem 
+                      key={plan.value} 
+                      className="flex flex-col items-start space-y-1 border p-4 rounded-md hover:bg-muted/50 transition-colors data-[state=checked]:border-primary data-[state=checked]:bg-primary/5"
+                      data-state={field.value === plan.value ? "checked" : "unchecked"}
+                    >
+                      <div className="flex items-center w-full">
+                        <FormControl>
+                          <RadioGroupItem value={plan.value} id={`account-type-${plan.value}`} />
+                        </FormControl>
+                        <FormLabel htmlFor={`account-type-${plan.value}`} className="font-medium ml-2 cursor-pointer flex-1">
+                          {plan.label}
+                        </FormLabel>
+                      </div>
+                      <FormDescription className="text-xs text-muted-foreground pl-6">
+                        Min. Deposit: ${plan.minimumDeposit.toLocaleString()}
+                      </FormDescription>
                     </FormItem>
                   ))}
                 </RadioGroup>

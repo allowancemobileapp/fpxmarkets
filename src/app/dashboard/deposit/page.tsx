@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,32 +11,53 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DollarSign, Bitcoin, Briefcase, HelpCircle, QrCode, Copy } from 'lucide-react'; // Assuming Ethereum can use Briefcase or similar
+import { DollarSign, Bitcoin, Briefcase, HelpCircle, QrCode, Copy } from 'lucide-react'; 
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Image from 'next/image';
+import { useAuth } from '@/contexts/AuthContext';
+import { getTradingPlan, type TradingPlan } from '@/config/tradingPlans';
+import type { AccountType } from '@/lib/types';
 
 const cryptocurrencies = [
-  { value: 'BTC', label: 'Bitcoin', icon: <Bitcoin className="h-5 w-5" />, address: 'bc1q...', qr: 'https://placehold.co/150x150.png?text=BTC+QR' },
-  { value: 'ETH', label: 'Ethereum', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 417" preserveAspectRatio="xMidYMid"><path fill="#343434" d="m127.961 0l-2.795 9.5v275.668l2.795 2.79l127.962-75.638z"/><path fill="#8C8C8C" d="M127.962 0L0 212.32l127.962 75.638V157.885z"/><path fill="#3C3C3B" d="m127.961 312.187l-1.575 1.92v98.199l1.575 4.6l127.963-177.959z"/><path fill="#8C8C8C" d="m127.962 416.905v-104.72L0 239.625z"/><path fill="#141414" d="m127.961 287.958l127.96-75.637l-127.96-58.162z"/><path fill="#393939" d="m.001 212.321l127.96 75.637V154.159z"/></svg>, address: '0x123...', qr: 'https://placehold.co/150x150.png?text=ETH+QR' },
-  { value: 'USDT', label: 'USDT (TRC20)', icon: <DollarSign className="h-5 w-5" />, address: 'TXYZ...', qr: 'https://placehold.co/150x150.png?text=USDT+QR' },
-  { value: 'SOL', label: 'Solana', icon: <Briefcase className="h-5 w-5" />, address: 'Sol1A...', qr: 'https://placehold.co/150x150.png?text=SOL+QR'  },
+  { value: 'BTC', label: 'Bitcoin', icon: <Bitcoin className="h-5 w-5" />, address: 'bc1q...', qr: 'https://placehold.co/150x150.png?text=BTC+QR', dataAiHint: "QR code Bitcoin" },
+  { value: 'ETH', label: 'Ethereum', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 417" preserveAspectRatio="xMidYMid"><path fill="#343434" d="m127.961 0l-2.795 9.5v275.668l2.795 2.79l127.962-75.638z"/><path fill="#8C8C8C" d="M127.962 0L0 212.32l127.962 75.638V157.885z"/><path fill="#3C3C3B" d="m127.961 312.187l-1.575 1.92v98.199l1.575 4.6l127.963-177.959z"/><path fill="#8C8C8C" d="m127.962 416.905v-104.72L0 239.625z"/><path fill="#141414" d="m127.961 287.958l127.96-75.637l-127.96-58.162z"/><path fill="#393939" d="m.001 212.321l127.96 75.637V154.159z"/></svg>, address: '0x123...', qr: 'https://placehold.co/150x150.png?text=ETH+QR', dataAiHint: "QR code Ethereum" },
+  { value: 'USDT', label: 'USDT (TRC20)', icon: <DollarSign className="h-5 w-5" />, address: 'TXYZ...', qr: 'https://placehold.co/150x150.png?text=USDT+QR', dataAiHint: "QR code USDT" },
+  { value: 'SOL', label: 'Solana', icon: <Briefcase className="h-5 w-5" />, address: 'Sol1A...', qr: 'https://placehold.co/150x150.png?text=SOL+QR', dataAiHint: "QR code Solana"  },
 ];
 
-const depositFormSchema = z.object({
+const depositFormSchemaBase = z.object({
   crypto: z.string().min(1, "Please select a cryptocurrency."),
   amountUSD: z.preprocess(
     (val) => parseFloat(z.string().parse(val)),
-    z.number().min(1, "Amount must be at least $1.") // Minimum $500 check will be custom
+    z.number().min(1, "Amount must be at least $1.")
   ),
 });
 
-type DepositFormValues = z.infer<typeof depositFormSchema>;
+type DepositFormValues = z.infer<typeof depositFormSchemaBase>;
 
 export default function DepositPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedCrypto, setSelectedCrypto] = useState(cryptocurrencies[0]);
-  const [isFirstDeposit, setIsFirstDeposit] = useState(true); // Mock this state for now
+  const [isFirstDeposit, setIsFirstDeposit] = useState(true); // Mock this state
+  const [currentUserPlan, setCurrentUserPlan] = useState<TradingPlan | undefined>(undefined);
+
+  useEffect(() => {
+    if (user?.accountType) {
+      setCurrentUserPlan(getTradingPlan(user.accountType as AccountType));
+    }
+  }, [user]);
+
+  const minimumDepositAmount = currentUserPlan?.minimumDeposit || 500; // Default to 500 if plan not found
+
+  const depositFormSchema = depositFormSchemaBase.refine(
+    (data) => !isFirstDeposit || data.amountUSD >= minimumDepositAmount,
+    {
+      message: `Minimum first deposit for your ${currentUserPlan?.label || 'Beginner'} plan is $${minimumDepositAmount.toLocaleString()}.`,
+      path: ["amountUSD"],
+    }
+  );
 
   const form = useForm<DepositFormValues>({
     resolver: zodResolver(depositFormSchema),
@@ -46,12 +67,10 @@ export default function DepositPage() {
     },
   });
 
-  const { watch, control, handleSubmit, formState: { errors } } = form;
+  const { watch, control, handleSubmit, formState: { errors }, register } = form;
   const watchedAmountUSD = watch('amountUSD');
-  const watchedCrypto = watch('crypto');
 
-  // Update selectedCrypto details when dropdown changes
-  useState(() => {
+  useEffect(() => {
     const sub = watch((value) => {
       const found = cryptocurrencies.find(c => c.value === value.crypto);
       if (found) setSelectedCrypto(found);
@@ -61,17 +80,14 @@ export default function DepositPage() {
 
 
   const onSubmit = (data: DepositFormValues) => {
-    if (isFirstDeposit && data.amountUSD < 500) {
-      form.setError("amountUSD", { type: "manual", message: "Minimum first deposit is $500." });
-      return;
-    }
-    // Simulate deposit submission
+    // Validation is now handled by Zod refinement
     console.log("Deposit submitted:", data);
     toast({
       title: "Deposit Initiated",
       description: `Your ${data.crypto} deposit of $${data.amountUSD.toFixed(2)} is pending.`,
     });
-    // Reset form or navigate
+    // Potentially set isFirstDeposit to false here after successful first deposit
+    // form.reset(); // Or navigate
   };
   
   const handleCopyAddress = () => {
@@ -80,7 +96,6 @@ export default function DepositPage() {
   };
 
   const cryptoAmount = watchedAmountUSD && watchedAmountUSD > 0 ? (watchedAmountUSD / (selectedCrypto.value === 'BTC' ? 68000 : selectedCrypto.value === 'ETH' ? 3800 : selectedCrypto.value === 'SOL' ? 150 : 1)).toFixed(6) : '0.000000';
-
 
   return (
     <div className="space-y-8">
@@ -98,12 +113,12 @@ export default function DepositPage() {
           </CardHeader>
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent className="space-y-6">
-              {isFirstDeposit && (
+              {isFirstDeposit && currentUserPlan && (
                 <Alert variant="default" className="bg-accent/10 border-accent text-accent-foreground">
                   <HelpCircle className="h-5 w-5 text-accent" />
-                  <AlertTitle>First Deposit Bonus!</AlertTitle>
+                  <AlertTitle>{currentUserPlan.label} Plan - First Deposit!</AlertTitle>
                   <AlertDescription>
-                    A minimum deposit of $500 is required for your first transaction to unlock potential bonuses.
+                    A minimum deposit of ${minimumDepositAmount.toLocaleString()} is required for your first transaction with the {currentUserPlan.label} plan to unlock potential bonuses.
                   </AlertDescription>
                 </Alert>
               )}
@@ -142,9 +157,9 @@ export default function DepositPage() {
                     id="amountUSD"
                     type="number"
                     step="0.01"
-                    placeholder="e.g., 500"
+                    placeholder={`e.g., ${minimumDepositAmount}`}
                     className="pl-10 h-12 text-base"
-                    {...form.register("amountUSD")}
+                    {...register("amountUSD")}
                   />
                 </div>
                 {errors.amountUSD && <p className="text-sm font-medium text-destructive">{errors.amountUSD.message}</p>}
@@ -172,7 +187,7 @@ export default function DepositPage() {
           </CardHeader>
           <CardContent className="space-y-4 text-center">
             <div className="bg-muted p-4 rounded-md flex justify-center">
-                <Image src={selectedCrypto.qr} alt={`${selectedCrypto.label} QR Code`} width={150} height={150} data-ai-hint="QR code crypto" />
+                <Image src={selectedCrypto.qr} alt={`${selectedCrypto.label} QR Code`} width={150} height={150} data-ai-hint={selectedCrypto.dataAiHint} />
             </div>
             <p className="text-sm font-mono break-all bg-muted/50 p-3 rounded-md">
                 {selectedCrypto.address}
@@ -193,5 +208,4 @@ export default function DepositPage() {
     </div>
   );
 }
-// Add FormItem if not automatically available from react-hook-form context (it should be)
 import { FormItem } from '@/components/ui/form';

@@ -1,17 +1,20 @@
+
 'use client';
 
 import type React from 'react';
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import type { User } from '@/lib/types';
+import type { User, AccountType } from '@/lib/types'; // Added AccountType
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (userData: User) => void; // Simulate login
-  signup: (userData: User) => void; // Simulate signup
+  login: (userData: User) => void; 
+  signup: (userData: User) => void; 
   logout: () => void;
   completePinSetup: () => void;
+  // hasMadeFirstDeposit: boolean; // Could be added for more complex deposit logic
+  // setIsFirstDepositState: (value: boolean) => void; // Example if we manage first deposit state here
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,24 +26,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Simulate checking auth status on mount
   useEffect(() => {
-    // In a real app, check Firebase Auth state or a token
     const storedUser = localStorage.getItem('fpxUser');
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser) as User;
       setUser(parsedUser);
-      // Redirect based on profile completion status
-      if (!parsedUser.profileCompleted) {
-        router.push('/signup'); // Or a specific profile completion step
-      } else if (!parsedUser.pinSetupCompleted) {
-        router.push('/setup-pin');
-      }
+      // Redirect based on profile completion status - this logic might be too aggressive
+      // and better handled by individual page guards or DashboardLayout
+      // if (!parsedUser.profileCompleted) {
+      //   router.push('/signup'); 
+      // } else if (!parsedUser.pinSetupCompleted) {
+      //   router.push('/setup-pin');
+      // }
     }
     setLoading(false);
   }, [router]);
 
   const login = (userData: User) => {
-    // Simulate login: In a real app, this would come after Firebase Auth success
-    const loggedInUser = { ...userData, profileCompleted: true, pinSetupCompleted: false }; // Assume PIN not set on fresh login
+    const loggedInUser: User = { 
+        ...userData, 
+        profileCompleted: true, // Assume profile is complete after they log in if they exist
+        // pinSetupCompleted will be based on what's in userData (from mock DB or real DB)
+    };
     setUser(loggedInUser);
     localStorage.setItem('fpxUser', JSON.stringify(loggedInUser));
     if (!loggedInUser.pinSetupCompleted) {
@@ -51,16 +57,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
   
   const signup = (userData: User) => {
-    // Simulate signup: In a real app, this would come after Firebase Auth success
-    // and initial profile data is saved.
-    const signedUpUser = { ...userData, profileCompleted: true, pinSetupCompleted: false };
+    const signedUpUser: User = { 
+        ...userData, 
+        profileCompleted: true, // Signup form completes the profile part
+        pinSetupCompleted: false, // PIN setup is next
+    };
     setUser(signedUpUser);
     localStorage.setItem('fpxUser', JSON.stringify(signedUpUser));
-    router.push('/setup-pin'); // Proceed to PIN setup
+    router.push('/setup-pin'); 
   };
 
   const logout = () => {
-    // Simulate logout: In a real app, call Firebase signOut
     setUser(null);
     localStorage.removeItem('fpxUser');
     router.push('/login');

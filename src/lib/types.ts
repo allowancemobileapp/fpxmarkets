@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 export const ContactFormSchema = z.object({
@@ -12,28 +13,33 @@ export const MarketInsightsFormSchema = z.object({
 });
 export type MarketInsightsFormValues = z.infer<typeof MarketInsightsFormSchema>;
 
-// New User Type
+// User Type
 export interface User {
   id: string;
   email: string;
   username: string;
   firstName?: string;
   lastName?: string;
-  accountType?: string;
+  accountType?: AccountType; // Updated to use AccountType
   phoneNumber?: string;
   country?: string;
   profileCompleted: boolean;
   pinSetupCompleted: boolean;
+  // We might add a flag here like 'hasMadeFirstDeposit: boolean' in a real app
 }
+
+export type AccountType = 'Beginner' | 'Personal' | 'Pro' | 'Professional' | 'Corporate';
+export const accountTypeValues: [AccountType, ...AccountType[]] = ['Beginner', 'Personal', 'Pro', 'Professional', 'Corporate'];
+
 
 // Signup Form Schema
 export const SignupFormSchema = z.object({
-  accountType: z.enum(['Beginner', 'Personal', 'Professional', 'Corporate'], { required_error: "Account type is required." }),
+  accountType: z.enum(accountTypeValues, { required_error: "Account type is required." }),
   firstName: z.string().min(2, "First name must be at least 2 characters."),
   lastName: z.string().min(2, "Last name must be at least 2 characters."),
   username: z.string().min(3, "Username must be at least 3 characters."),
   email: z.string().email("Invalid email address."),
-  phoneNumber: z.string().min(7, "Phone number seems too short.").optional(), // Simplified validation
+  phoneNumber: z.string().min(7, "Phone number seems too short.").optional().or(z.literal('')),
   country: z.string().min(2, "Country is required."),
   password: z.string().min(8, "Password must be at least 8 characters."),
   confirmPassword: z.string(),
@@ -66,5 +72,3 @@ export const PinSetupFormSchema = z.object({
   path: ["confirmPin4"], // Or a general path
 });
 export type PinSetupFormValues = z.infer<typeof PinSetupFormSchema>;
-
-export type AccountType = 'Beginner' | 'Personal' | 'Professional' | 'Corporate';
