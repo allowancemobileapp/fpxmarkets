@@ -22,7 +22,7 @@ import { usePathname } from 'next/navigation';
 
 const navItems = [
   { href: "/quick-start", label: "Quick Start" },
-  { href: "/your-account", label: "Your Account", authRequired: true }, // Example: auth required
+  { href: "/about", label: "About Us" }, // Added About Us link
   { href: "/trading-platforms", label: "Trading Platforms" },
   { href: "/trading", label: "Trading" },
   { href: "/markets", label: "Markets" },
@@ -43,10 +43,16 @@ export default function Header() {
 
   const getInitials = (name?: string) => {
     if (!name) return "FP";
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    const parts = name.split(' ').map(n => n[0]);
+    if (parts.length > 2) return parts.slice(0, 2).join('').toUpperCase();
+    return parts.join('').toUpperCase();
   }
 
-  const displayedNavItems = navItems.filter(item => !item.authRequired || (item.authRequired && user));
+  const displayedNavItems = navItems.filter(item => {
+    // Example: if you had items that required auth for main nav, you could use:
+    // if (item.authRequired && !user) return false;
+    return true;
+  });
   const desktopNavLimit = 5;
 
 
@@ -80,7 +86,7 @@ export default function Header() {
 
         <div className="flex items-center gap-3">
           <ThemeToggleButton />
-          {loading && !user ? ( // Show placeholders if loading and no user data yet
+          {loading && !user ? ( 
             <div className="hidden md:flex items-center gap-2">
               <div className="h-9 w-20 bg-muted rounded-md animate-pulse"></div>
               <div className="h-9 w-32 bg-muted rounded-md animate-pulse"></div>
@@ -158,14 +164,15 @@ export default function Header() {
                 <Separator />
                 <nav className="flex flex-col space-y-3 flex-grow">
                   {displayedNavItems.map((item) => (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      className="text-base font-medium text-foreground transition-colors hover:text-primary py-1.5"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
+                     <SheetClose asChild key={item.label}>
+                        <Link
+                        href={item.href}
+                        className="text-base font-medium text-foreground transition-colors hover:text-primary py-1.5"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                        {item.label}
+                        </Link>
+                    </SheetClose>
                   ))}
                 </nav>
                 <Separator />
@@ -177,21 +184,27 @@ export default function Header() {
                     </>
                   ) : user ? (
                     <>
-                     <Button variant="default" className="w-full" asChild onClick={() => setIsMobileMenuOpen(false)}>
-                       <Link href="/dashboard">Dashboard</Link>
-                      </Button>
+                     <SheetClose asChild>
+                        <Button variant="default" className="w-full" asChild onClick={() => setIsMobileMenuOpen(false)}>
+                           <Link href="/dashboard">Dashboard</Link>
+                        </Button>
+                     </SheetClose>
                       <Button variant="outline" className="w-full" onClick={() => { logout(); setIsMobileMenuOpen(false); }}>
                         Logout
                       </Button>
                     </>
                   ) : (
                     <>
-                      <Button variant="outline" className="w-full" asChild onClick={() => setIsMobileMenuOpen(false)}>
-                        <Link href="/login">Login</Link>
-                      </Button>
-                      <Button variant="accent" className="w-full" asChild onClick={() => setIsMobileMenuOpen(false)}>
-                        <Link href="/signup">Sign Up</Link>
-                      </Button>
+                      <SheetClose asChild>
+                        <Button variant="outline" className="w-full" asChild onClick={() => setIsMobileMenuOpen(false)}>
+                            <Link href="/login">Login</Link>
+                        </Button>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Button variant="accent" className="w-full" asChild onClick={() => setIsMobileMenuOpen(false)}>
+                            <Link href="/signup">Sign Up</Link>
+                        </Button>
+                      </SheetClose>
                     </>
                   )}
                 </div>

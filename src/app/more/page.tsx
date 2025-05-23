@@ -1,3 +1,4 @@
+
 import GenericPageLayout from "@/components/layout/GenericPageLayout";
 import type { Metadata } from 'next';
 import Link from "next/link";
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
 };
 
 const moreLinks = [
+  { href: "/about", label: "About Us" }, // Added About Us link
   { href: "/pricing", label: "Pricing" },
   { href: "/partners", label: "Partners" },
   { href: "/resources", label: "Resources" },
