@@ -1,8 +1,7 @@
-
 "use client";
 
 import Link from "next/link";
-import { Coins, Menu, X, LogOut, LayoutDashboard, UserCircle } from "lucide-react"; // Added UserCircle
+import { Coins, Menu, X, LogOut, LayoutDashboard, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { useState } from "react";
@@ -22,10 +21,10 @@ import { usePathname } from 'next/navigation';
 
 const navItems = [
   { href: "/quick-start", label: "Quick Start" },
-  { href: "/about", label: "About Us" }, // Added About Us link
   { href: "/trading-platforms", label: "Trading Platforms" },
   { href: "/trading", label: "Trading" },
   { href: "/markets", label: "Markets" },
+  { href: "/about", label: "About Us" },
   { href: "/pricing", label: "Pricing" },
   { href: "/contact", label: "Contact" },
 ];
@@ -49,15 +48,13 @@ export default function Header() {
   }
 
   const displayedNavItems = navItems.filter(item => {
-    // Example: if you had items that required auth for main nav, you could use:
-    // if (item.authRequired && !user) return false;
     return true;
   });
   const desktopNavLimit = 5;
 
 
   return (
-    <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b">
+    <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 w-full border-b"> {/* z-40 to be below chat widget if any */}
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
           <Coins className="h-8 w-8 text-primary" />
@@ -104,7 +101,7 @@ export default function Header() {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.username}</p>
+                    <p className="text-sm font-medium leading-none">{user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.username}</p>
                     <p className="text-xs leading-none text-muted-foreground">
                       {user.email}
                     </p>

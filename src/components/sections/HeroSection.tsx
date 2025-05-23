@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import Link from 'next/link';
 
 export default function HeroSection() {
   return (
@@ -14,23 +15,25 @@ export default function HeroSection() {
             Access global markets with competitive pricing, advanced platforms, and dedicated support. Start your trading journey today.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
-            <Button variant="accent" size="lg" className="w-full sm:w-auto transition-transform hover:scale-105">
-              Open Live Account
+            <Button asChild variant="accent" size="lg" className="w-full sm:w-auto transition-transform hover:scale-105 text-base py-3">
+              <Link href="/signup">Open Live Account</Link>
             </Button>
-            <Button variant="outline" size="lg" className="w-full sm:w-auto hover:bg-primary/5 transition-transform hover:scale-105">
-              Try Demo Account
+            <Button asChild variant="outline" size="lg" className="w-full sm:w-auto hover:bg-primary/5 transition-transform hover:scale-105 text-base py-3">
+              {/* We can link this to a specific page about demo accounts later */}
+              <Link href="/signup">Try Demo Account</Link>
             </Button>
           </div>
         </Card>
       </div>
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <Image
-          src="https://picsum.photos/1920/1080?grayscale&blur=2"
+          src="https://placehold.co/1920x1080.png"
           alt="Abstract financial background"
           layout="fill"
           objectFit="cover"
-          className="opacity-20"
-          data-ai-hint="abstract finance"
+          className="opacity-10 dark:opacity-5"
+          data-ai-hint="abstract finance technology"
+          priority
         />
       </div>
     </section>

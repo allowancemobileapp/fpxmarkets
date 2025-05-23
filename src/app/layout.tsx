@@ -5,7 +5,8 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/ThemeProvider';
-import { AuthProvider } from '@/contexts/AuthContext'; // Import AuthProvider
+import { AuthProvider } from '@/contexts/AuthContext';
+import LiveChatButton from '@/components/LiveChatButton'; // Import the LiveChatButton
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -30,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
-        <AuthProvider> {/* Wrap with AuthProvider */}
+        <AuthProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -42,6 +43,7 @@ export default function RootLayout({
               {children}
             </main>
             <Footer />
+            <LiveChatButton /> {/* Add LiveChatButton here */}
             <Toaster />
           </ThemeProvider>
         </AuthProvider>
