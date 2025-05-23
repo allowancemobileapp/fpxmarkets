@@ -21,11 +21,12 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import Image from 'next/image';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'; // Added import
 
 const mainNavItems = [
   { href: '/dashboard', label: 'Home', icon: HomeIcon },
   { href: '/dashboard/profile', label: 'Profile', icon: UserCircle },
-  { href: '/dashboard/markets', label: 'Markets', icon: LineChart }, // Corrected label
+  { href: '/dashboard/markets', label: 'Markets', icon: LineChart },
   { href: '/dashboard/copy-trading', label: 'Copy Trading', icon: Users },
   { href: '/dashboard/portfolio', label: 'Portfolio', icon: Briefcase },
   { href: '/dashboard/deposit', label: 'Deposit Funds', icon: Wallet },
@@ -60,10 +61,10 @@ export default function DashboardSidebar() {
         {mainNavItems.map((item) => (
           <Button
             key={item.label}
-            variant={pathname.startsWith(item.href) && (item.href === '/dashboard' ? pathname === item.href : true) ? 'secondary' : 'ghost'}
+            variant={pathname === item.href ? 'secondary' : 'ghost'}
             className={cn(
               'w-full justify-start text-base py-2.5 px-3', // Adjusted padding and text size
-              pathname.startsWith(item.href) && (item.href === '/dashboard' ? pathname === item.href : true) && 'font-semibold'
+              pathname === item.href && 'font-semibold'
             )}
             asChild
           >
