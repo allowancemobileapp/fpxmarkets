@@ -1,10 +1,11 @@
+
 "use client";
 
 import Link from "next/link";
-import { Coins, Menu, X, LogOut, LayoutDashboard, UserCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Coins, Menu, X, LogOut, LayoutDashboard, UserCircle, Globe } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button"; // Import buttonVariants
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Added useEffect for loading state consistency
 import { ThemeToggleButton } from "@/components/ThemeToggleButton";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,9 +16,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname } from 'next/navigation';
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils"; // Import cn
 
 const navItems = [
   { href: "/quick-start", label: "Quick Start" },
@@ -25,6 +30,7 @@ const navItems = [
   { href: "/trading", label: "Trading" },
   { href: "/markets", label: "Markets" },
   { href: "/about", label: "About Us" },
+  { href: "/copy-trading", label: "Copy Trading" },
   { href: "/pricing", label: "Pricing" },
   { href: "/contact", label: "Contact" },
 ];
@@ -32,10 +38,17 @@ const navItems = [
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, logout, loading } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth(); // Renamed loading to authLoading
   const pathname = usePathname();
+  const { toast } = useToast();
+  const [language, setLanguage] = useState("en");
+  const [isClient, setIsClient] = useState(false); // For preventing hydration mismatch with loading state
 
-  // If on a dashboard page, don't render this header
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+
   if (pathname && pathname.startsWith('/dashboard')) {
     return null;
   }
@@ -47,14 +60,22 @@ export default function Header() {
     return parts.join('').toUpperCase();
   }
 
+  const handleLanguageChange = (lang: string) => {
+    setLanguage(lang);
+    toast({
+      title: "Language Switched (UI Demo)",
+      description: `Language changed to ${lang === 'en' ? 'English' : lang === 'es' ? 'Español' : 'Français'}. Actual translation not implemented.`,
+    });
+  };
+
   const displayedNavItems = navItems.filter(item => {
     return true;
   });
-  const desktopNavLimit = 5;
+  const desktopNavLimit = 6;
 
 
   return (
-    <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 w-full border-b"> {/* z-40 to be below chat widget if any */}
+    <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 w-full border-b">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
           <Coins className="h-8 w-8 text-primary" />
@@ -81,14 +102,32 @@ export default function Header() {
           )}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <ThemeToggleButton />
-          {loading && !user ? ( 
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Globe className="h-[1.2rem] w-[1.2rem]" />
+                <span className="sr-only">Change language</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Select Language</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup value={language} onValueChange={handleLanguageChange}>
+                <DropdownMenuRadioItem value="en">English</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="es">Español</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="fr">Français</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {isClient && authLoading ? (
             <div className="hidden md:flex items-center gap-2">
               <div className="h-9 w-20 bg-muted rounded-md animate-pulse"></div>
               <div className="h-9 w-32 bg-muted rounded-md animate-pulse"></div>
             </div>
-          ) : user ? (
+          ) : isClient && user ? (
              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full">
@@ -127,7 +166,7 @@ export default function Header() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : (
+          ) : isClient ? (
             <>
               <Button variant="outline" size="sm" className="hidden md:inline-flex" asChild>
                 <Link href="/login">Login</Link>
@@ -136,7 +175,14 @@ export default function Header() {
                 <Link href="/signup">Sign Up</Link>
               </Button>
             </>
+          ) : (
+            // Fallback for SSR or when isClient is false (initial render)
+             <div className="hidden md:flex items-center gap-2">
+              <div className="h-9 w-20 bg-muted rounded-md animate-pulse"></div>
+              <div className="h-9 w-32 bg-muted rounded-md animate-pulse"></div>
+            </div>
           )}
+
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild className="md:hidden">
               <Button variant="ghost" size="icon">
@@ -174,34 +220,51 @@ export default function Header() {
                 </nav>
                 <Separator />
                  <div className="flex flex-col space-y-3 pt-4">
-                  {loading && !user ? (
+                  {isClient && authLoading ? (
                      <>
                       <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
                       <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
                     </>
-                  ) : user ? (
+                  ) : isClient && user ? (
                     <>
                      <SheetClose asChild>
-                        <Button variant="default" className="w-full" asChild onClick={() => setIsMobileMenuOpen(false)}>
-                           <Link href="/dashboard">Dashboard</Link>
-                        </Button>
+                        <Link
+                          href="/dashboard"
+                          className={cn(buttonVariants({ variant: "default", size: "default" }), "w-full")}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                           Dashboard
+                        </Link>
                      </SheetClose>
                       <Button variant="outline" className="w-full" onClick={() => { logout(); setIsMobileMenuOpen(false); }}>
                         Logout
                       </Button>
                     </>
-                  ) : (
+                  ) : isClient ? (
                     <>
                       <SheetClose asChild>
-                        <Button variant="outline" className="w-full" asChild onClick={() => setIsMobileMenuOpen(false)}>
-                            <Link href="/login">Login</Link>
-                        </Button>
+                        <Link
+                          href="/login"
+                          className={cn(buttonVariants({ variant: "outline", size: "default" }), "w-full")}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                           Login
+                        </Link>
                       </SheetClose>
                       <SheetClose asChild>
-                        <Button variant="accent" className="w-full" asChild onClick={() => setIsMobileMenuOpen(false)}>
-                            <Link href="/signup">Sign Up</Link>
-                        </Button>
+                         <Link
+                          href="/signup"
+                          className={cn(buttonVariants({ variant: "accent", size: "default" }), "w-full")}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                           Sign Up
+                        </Link>
                       </SheetClose>
+                    </>
+                  ) : (
+                     <>
+                      <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
+                      <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
                     </>
                   )}
                 </div>

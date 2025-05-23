@@ -1,7 +1,8 @@
 
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { FileQuestion } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function NotFound() {
   return (
@@ -15,9 +16,15 @@ export default function NotFound() {
         <p className="text-md sm:text-lg text-muted-foreground mb-10">
           Oops! The page you&apos;re looking for doesn&apos;t seem to exist. It might have been moved, deleted, or you might have typed the address incorrectly.
         </p>
-        <Button asChild size="lg" className="w-full sm:w-auto">
-          <Link href="/">Go Back to Homepage</Link>
-        </Button>
+        <Link
+          href="/"
+          className={cn(
+            buttonVariants({ size: "lg", variant: "default" }), // Use buttonVariants to style the Link
+            "w-full sm:w-auto"
+          )}
+        >
+          Go Back to Homepage
+        </Link>
       </div>
     </div>
   );
