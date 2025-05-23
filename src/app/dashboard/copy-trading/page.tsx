@@ -62,15 +62,13 @@ export default function CopyTradingPage() {
                   <span className="text-muted-foreground">{trader.copiers.toLocaleString()} Copiers</span>
                 </div>
               </CardContent>
-              <CardFooter className="p-4 bg-muted/30 border-t mt-auto">
-                <div className="flex w-full gap-2">
-                  <Button variant="outline" size="sm" className="flex-1 text-xs sm:text-sm">
-                    <Eye className="mr-1.5 h-4 w-4" /> View Profile
-                  </Button>
-                  <Button variant="accent" size="sm" className="flex-1 text-xs sm:text-sm">
-                    <Copy className="mr-1.5 h-4 w-4" /> Copy
-                  </Button>
-                </div>
+              <CardFooter className="flex flex-wrap items-center justify-start gap-2 p-4 bg-muted/30 border-t mt-auto">
+                <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+                  <Eye className="mr-1.5 h-4 w-4" /> View Profile
+                </Button>
+                <Button variant="accent" size="sm" className="text-xs sm:text-sm">
+                  <Copy className="mr-1.5 h-4 w-4" /> Copy
+                </Button>
               </CardFooter>
             </Card>
           ))}
