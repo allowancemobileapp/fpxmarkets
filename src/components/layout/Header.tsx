@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { Coins, Menu, X, LogOut, LayoutDashboard } from "lucide-react";
+import { Coins, Menu, X, LogOut, LayoutDashboard, UserCircle } from "lucide-react"; // Added UserCircle
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { useState } from "react";
@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { usePathname } from 'next/navigation'; // Import usePathname
+import { usePathname } from 'next/navigation';
 
 const navItems = [
   { href: "/quick-start", label: "Quick Start" },
@@ -27,8 +27,6 @@ const navItems = [
   { href: "/trading", label: "Trading" },
   { href: "/markets", label: "Markets" },
   { href: "/pricing", label: "Pricing" },
-  // { href: "/partners", label: "Partners" }, // Removed as per dashboard structure
-  // { href: "/resources", label: "Resources" }, // Removed
   { href: "/contact", label: "Contact" },
 ];
 
@@ -36,16 +34,16 @@ const navItems = [
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout, loading } = useAuth();
-  const pathname = usePathname(); // Get current pathname
+  const pathname = usePathname();
+
+  // If on a dashboard page, don't render this header
+  if (pathname && pathname.startsWith('/dashboard')) {
+    return null;
+  }
 
   const getInitials = (name?: string) => {
     if (!name) return "FP";
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
-  }
-
-  // If on a dashboard page, don't render this header
-  if (pathname.startsWith('/dashboard')) {
-    return null;
   }
 
   const displayedNavItems = navItems.filter(item => !item.authRequired || (item.authRequired && user));
@@ -55,7 +53,7 @@ export default function Header() {
   return (
     <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
           <Coins className="h-8 w-8 text-primary" />
           <span className="text-xl font-bold text-primary">FPX Markets</span>
         </Link>
@@ -82,7 +80,7 @@ export default function Header() {
 
         <div className="flex items-center gap-3">
           <ThemeToggleButton />
-          {loading ? (
+          {loading && !user ? ( // Show placeholders if loading and no user data yet
             <div className="hidden md:flex items-center gap-2">
               <div className="h-9 w-20 bg-muted rounded-md animate-pulse"></div>
               <div className="h-9 w-32 bg-muted rounded-md animate-pulse"></div>
@@ -92,7 +90,7 @@ export default function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={user.profilePictureUrl || `https://placehold.co/100x100.png?text=${getInitials(user.username)}`} alt={user.username || 'User Profile'} data-ai-hint="profile avatar" />
+                    <AvatarImage src={`https://placehold.co/100x100.png?text=${getInitials(user.username)}`} alt={user.username || 'User Profile'} data-ai-hint="profile avatar" />
                     <AvatarFallback>{getInitials(user.username)}</AvatarFallback>
                   </Avatar>
                 </Button>
@@ -115,7 +113,7 @@ export default function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                    <Link href="/dashboard/profile">
-                    <Coins className="mr-2 h-4 w-4" /> {/* Placeholder icon */}
+                    <UserCircle className="mr-2 h-4 w-4" />
                     Profile
                   </Link>
                 </DropdownMenuItem>
@@ -151,7 +149,7 @@ export default function Header() {
                     <span className="text-lg font-bold text-primary">FPX Markets</span>
                   </Link>
                   <SheetClose asChild>
-                     <Button variant="ghost" size="icon">
+                     <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
                         <X className="h-6 w-6" />
                         <span className="sr-only">Close menu</span>
                       </Button>
@@ -172,7 +170,7 @@ export default function Header() {
                 </nav>
                 <Separator />
                  <div className="flex flex-col space-y-3 pt-4">
-                  {loading ? (
+                  {loading && !user ? (
                      <>
                       <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
                       <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
