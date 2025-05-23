@@ -15,13 +15,14 @@ import {
   Wallet,
   History,
   LifeBuoy,
+  ArrowUpCircle, // Added for Withdrawal
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import Image from 'next/image';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'; // Added import
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const mainNavItems = [
   { href: '/dashboard', label: 'Home', icon: HomeIcon },
@@ -30,6 +31,7 @@ const mainNavItems = [
   { href: '/dashboard/copy-trading', label: 'Copy Trading', icon: Users },
   { href: '/dashboard/portfolio', label: 'Portfolio', icon: Briefcase },
   { href: '/dashboard/deposit', label: 'Deposit Funds', icon: Wallet },
+  { href: '/dashboard/withdrawal', label: 'Withdraw Funds', icon: ArrowUpCircle }, // Added Withdrawal
   { href: '/dashboard/transactions', label: 'Transactions', icon: History },
 ];
 

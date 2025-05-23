@@ -8,7 +8,7 @@ import {
   Bell,
   Coins,
   LogOut,
-  LayoutDashboard, // This is aliased as Home
+  LayoutDashboard,
   UserCircle,
   Settings,
   LifeBuoy,
@@ -16,7 +16,8 @@ import {
   History,
   LineChart,
   Users,
-  Briefcase
+  Briefcase,
+  ArrowUpCircle, // Added for Withdrawal
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +47,7 @@ const sidebarNavItems = [
   { href: '/dashboard/copy-trading', label: 'Copy Trading', icon: Users },
   { href: '/dashboard/portfolio', label: 'Portfolio', icon: Briefcase },
   { href: '/dashboard/deposit', label: 'Deposit Funds', icon: Wallet },
+  { href: '/dashboard/withdrawal', label: 'Withdraw Funds', icon: ArrowUpCircle }, // Added Withdrawal
   { href: '/dashboard/transactions', label: 'Transactions', icon: History },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
   { href: '/dashboard/support', label: 'Support', icon: LifeBuoy },
@@ -63,6 +65,19 @@ export default function DashboardHeader() {
     const parts = name.split(' ').map(n => n[0]);
     if (parts.length > 2) return parts.slice(0, 2).join('').toUpperCase();
     return parts.join('').toUpperCase();
+  };
+
+  const getActivePageLabel = () => {
+    for (const item of sidebarNavItems) {
+      // Exact match for /dashboard, prefix match for others
+      if (item.href === '/dashboard' && pathname === '/dashboard') {
+        return item.label;
+      }
+      if (item.href !== '/dashboard' && pathname.startsWith(item.href)) {
+        return item.label;
+      }
+    }
+    return 'Dashboard'; // Default
   };
 
   return (
@@ -112,9 +127,8 @@ export default function DashboardHeader() {
           </SheetContent>
         </Sheet>
         
-        {/* Placeholder for potential breadcrumbs or page title. Could show current page title */}
          <h1 className="text-lg font-semibold hidden md:block text-foreground">
-           {sidebarNavItems.find(item => pathname.startsWith(item.href) && (item.href === '/dashboard' ? pathname === item.href : true ))?.label || 'Dashboard'}
+           {getActivePageLabel()}
          </h1>
 
       </div>
