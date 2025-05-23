@@ -2,10 +2,10 @@
 "use client";
 
 import Link from "next/link";
-import { Coins, Menu, X, LogOut, LayoutDashboard, UserCircle, Globe } from "lucide-react";
+import { Coins, Menu, X, LogOut, LayoutDashboard, UserCircle, Globe, PlayCircle, MonitorSmartphone, LineChart, Info, Copy, BarChart3, DollarSign, Users as UsersIcon, Mail } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle } from "@/components/ui/sheet"; // Added SheetHeader, SheetTitle
-import { useState, useEffect } from "react";
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import React, { useState, useEffect } from "react";
 import { ThemeToggleButton } from "@/components/ThemeToggleButton";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,20 +19,48 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem
 } from "@/components/ui/dropdown-menu";
+import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarTrigger,
+} from "@/components/ui/menubar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { href: "/quick-start", label: "Quick Start" },
-  { href: "/trading-platforms", label: "Trading Platforms" },
-  { href: "/trading", label: "Trading" },
-  { href: "/markets", label: "Markets" },
-  { href: "/about", label: "About Us" },
-  { href: "/copy-trading", label: "Copy Trading" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/contact", label: "Contact" },
+interface NavItem {
+  label: string;
+  href?: string;
+  icon?: React.ElementType;
+  isMenu?: boolean;
+  subItems?: NavSubItem[];
+}
+
+interface NavSubItem {
+  href: string;
+  label: string;
+  icon?: React.ElementType;
+}
+
+const navItems: NavItem[] = [
+  { href: "/quick-start", label: "Quick Start", icon: PlayCircle },
+  { href: "/trading-platforms", label: "Trading Platforms", icon: MonitorSmartphone },
+  {
+    label: "Trading",
+    icon: LineChart, 
+    isMenu: true,
+    subItems: [
+      { href: "/trading", label: "Trading Information", icon: Info },
+      { href: "/copy-trading", label: "Copy Trading", icon: Copy },
+    ],
+  },
+  { href: "/markets", label: "Markets", icon: BarChart3 },
+  { href: "/pricing", label: "Pricing", icon: DollarSign },
+  { href: "/about", label: "About Us", icon: UsersIcon },
+  { href: "/contact", label: "Contact", icon: Mail },
 ];
 
 
@@ -68,18 +96,15 @@ export default function Header() {
     if (lang === 'de') langName = "Deutsch";
     if (lang === 'zh') langName = "中文 (Chinese)";
     if (lang === 'ja') langName = "日本語 (Japanese)";
+    if (lang === 'ar') langName = "العربية (Arabic)";
+    if (lang === 'pt') langName = "Português (Portuguese)";
+
 
     toast({
       title: "Language Switched (UI Demo)",
       description: `Language changed to ${langName}. Actual translation not implemented.`,
     });
   };
-
-  const displayedNavItems = navItems.filter(item => {
-    return true;
-  });
-  const desktopNavLimit = 6;
-
 
   return (
     <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 w-full border-b">
@@ -89,25 +114,33 @@ export default function Header() {
           <span className="text-xl font-bold text-primary">FPX Markets</span>
         </Link>
 
-        <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
-          {displayedNavItems.slice(0, desktopNavLimit).map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >
-              {item.label}
-            </Link>
-          ))}
-          {displayedNavItems.length > desktopNavLimit && (
-             <Link
-              href="/more"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >
-              More...
-            </Link>
+        <Menubar className="rounded-none border-none bg-transparent p-0 hidden md:flex items-center space-x-1 lg:space-x-2">
+          {navItems.map((item) =>
+            item.isMenu && item.subItems ? (
+              <MenubarMenu key={item.label}>
+                <MenubarTrigger className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground h-auto py-2 px-3">
+                  {item.label}
+                </MenubarTrigger>
+                <MenubarContent>
+                  {item.subItems.map((subItem) => (
+                    <MenubarItem key={subItem.label} asChild>
+                      <Link href={subItem.href} className="w-full flex items-center gap-2 cursor-pointer">
+                        {subItem.icon && <subItem.icon className="h-4 w-4 text-muted-foreground" />}
+                        {subItem.label}
+                      </Link>
+                    </MenubarItem>
+                  ))}
+                </MenubarContent>
+              </MenubarMenu>
+            ) : (
+              <Button key={item.label} variant="ghost" asChild className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary hover:bg-transparent h-auto py-2 px-3">
+                <Link href={item.href!}>
+                  {item.label}
+                </Link>
+              </Button>
+            )
           )}
-        </nav>
+        </Menubar>
 
         <div className="flex items-center gap-2 sm:gap-3">
           <ThemeToggleButton />
@@ -128,11 +161,13 @@ export default function Header() {
                 <DropdownMenuRadioItem value="de">Deutsch</DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="zh">中文 (Chinese)</DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="ja">日本語 (Japanese)</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="ar">العربية (Arabic)</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="pt">Português (Portuguese)</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {isClient && authLoading ? (
+          {isClient && authLoading && !user ? (
             <div className="hidden md:flex items-center gap-2">
               <div className="h-9 w-20 bg-muted rounded-md animate-pulse"></div>
               <div className="h-9 w-32 bg-muted rounded-md animate-pulse"></div>
@@ -199,9 +234,9 @@ export default function Header() {
                 <span className="sr-only">Open menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full max-w-xs bg-background p-0"> {/* Changed p-6 to p-0 for header */}
-              <SheetHeader className="flex flex-row justify-between items-center p-4 border-b"> {/* Added SheetHeader */}
-                <SheetTitle className="sr-only">Main Menu</SheetTitle> {/* Added sr-only SheetTitle */}
+            <SheetContent side="right" className="w-full max-w-xs bg-background p-0">
+              <SheetHeader className="flex flex-row justify-between items-center p-4 border-b">
+                <SheetTitle className="sr-only">Main Menu</SheetTitle>
                  <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
                   <Coins className="h-7 w-7 text-primary" />
                   <span className="text-lg font-bold text-primary">FPX Markets</span>
@@ -213,24 +248,45 @@ export default function Header() {
                     </Button>
                 </SheetClose>
               </SheetHeader>
-              <div className="p-6 flex flex-col space-y-5 h-[calc(100%-4rem)]"> {/* Adjust height for header */}
-                <Separator />
-                <nav className="flex flex-col space-y-3 flex-grow">
-                  {displayedNavItems.map((item) => (
-                     <SheetClose asChild key={item.label}>
-                        <Link
-                        href={item.href}
-                        className="text-base font-medium text-foreground transition-colors hover:text-primary py-1.5"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                        {item.label}
-                        </Link>
-                    </SheetClose>
+              <div className="p-6 flex flex-col space-y-2 h-[calc(100%-4rem)] overflow-y-auto">
+                
+                <nav className="flex flex-col space-y-1 flex-grow">
+                  {navItems.map((item) => (
+                     <React.Fragment key={item.label}>
+                       {item.isMenu && item.subItems ? (
+                         <>
+                           <div className="px-1 py-2 text-sm font-semibold text-muted-foreground">{item.label}</div>
+                           {item.subItems.map((subItem) => (
+                             <SheetClose asChild key={subItem.label}>
+                               <Link
+                                 href={subItem.href}
+                                 className="flex items-center gap-3 rounded-md px-1 py-2 text-base font-medium text-foreground transition-colors hover:text-primary pl-4"
+                                 onClick={() => setIsMobileMenuOpen(false)}
+                               >
+                                 {subItem.icon && <subItem.icon className="h-5 w-5" />}
+                                 {subItem.label}
+                               </Link>
+                             </SheetClose>
+                           ))}
+                         </>
+                       ) : (
+                         <SheetClose asChild>
+                           <Link
+                             href={item.href!}
+                             className="flex items-center gap-3 rounded-md px-1 py-2 text-base font-medium text-foreground transition-colors hover:text-primary"
+                             onClick={() => setIsMobileMenuOpen(false)}
+                           >
+                             {item.icon && <item.icon className="h-5 w-5" />}
+                             {item.label}
+                           </Link>
+                         </SheetClose>
+                       )}
+                     </React.Fragment>
                   ))}
                 </nav>
-                <Separator />
+                <Separator className="my-4"/>
                  <div className="flex flex-col space-y-3 pt-4">
-                  {isClient && authLoading ? (
+                  {isClient && authLoading && !user ? (
                      <>
                       <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
                       <div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>
@@ -286,4 +342,3 @@ export default function Header() {
     </header>
   );
 }
-

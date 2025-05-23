@@ -10,9 +10,13 @@ export const metadata: Metadata = {
 };
 
 const moreLinks = [
-  { href: "/about", label: "About Us", description: "Learn about our mission, values, and the team behind FPX Markets." },
+  { href: "/quick-start", label: "Quick Start Guide", description: "Your first steps to trading with FPX Markets." },
+  { href: "/trading-platforms", label: "Trading Platforms", description: "Explore our WebTrader, Mobile, and Desktop platforms." },
+  { href: "/trading", label: "Trading Information", description: "Learn about instruments, leverage, and risk management." },
   { href: "/copy-trading", label: "Copy Trading", description: "Explore how to follow and copy strategies from experienced traders." },
+  { href: "/markets", label: "Markets Overview", description: "Discover the range of markets available for trading." },
   { href: "/pricing", label: "Pricing & Spreads", description: "Understand our transparent fee structure and competitive trading costs." },
+  { href: "/about", label: "About Us", description: "Learn about our mission, values, and the team behind FPX Markets." },
   { href: "/partners", label: "Partnership Programs", description: "Discover opportunities to collaborate with FPX Markets." },
   { href: "/resources", label: "Trading Resources", description: "Access educational materials, market analysis, and trading tools." },
   { href: "/contact", label: "Contact Us", description: "Get in touch with our support team for any inquiries." },
