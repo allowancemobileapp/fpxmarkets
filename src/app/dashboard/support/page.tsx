@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { LifeBuoy, HelpCircle, MessageSquare, Mail, Phone, Search } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 
 const faqItems = [
   {
@@ -15,16 +16,24 @@ const faqItems = [
   },
   {
     question: "What is the minimum deposit amount?",
-    answer: "For your first deposit, the minimum amount is $500. Subsequent deposits may have lower or no minimums, depending on the chosen method and current promotions."
+    answer: "The minimum deposit amount depends on your account type. For example, the Beginner plan has a $500 minimum first deposit. Subsequent deposits may have lower or no minimums depending on current promotions."
   },
   {
     question: "How can I change my password or Trading PIN?",
-    answer: "You can change your password and Trading PIN in the 'Settings' section under 'Security'. You will need to provide your current credentials to make these changes."
+    answer: "You can change your password and Trading PIN in the 'Settings' section under 'Security'. You will typically need to provide your current credentials to make these changes."
   },
   {
     question: "How does Copy Trading work?",
     answer: "Copy Trading allows you to automatically replicate the trades of experienced traders on our platform. Browse available traders in the 'Copy Trading' section, choose one to copy, and allocate funds. Their trades will then be copied to your account proportionally."
   },
+   {
+    question: "How do I withdraw funds?",
+    answer: "Navigate to the 'Withdraw Funds' section in your dashboard. Select your withdrawal method, enter the amount, and provide the necessary details (e.g., wallet address). Withdrawals may take some time to process."
+  },
+  {
+    question: "What trading platforms are available?",
+    answer: "FPX Markets offers a WebTrader, mobile apps for iOS and Android, and a downloadable Desktop Trader. Each platform provides robust tools for trading and account management."
+  }
 ];
 
 export default function SupportPage() {
@@ -127,4 +136,3 @@ export default function SupportPage() {
     </div>
   );
 }
-import { Label } from '@/components/ui/label'; // Add missing import

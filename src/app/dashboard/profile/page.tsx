@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { UserCircle, Edit3, KeyRound, Image as ImageIcon } from 'lucide-react';
+import { UserCircle, Edit3, KeyRound, Image as ImageIcon, ShieldCheck } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 export default function ProfilePage() {
@@ -108,5 +108,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-// Add ShieldCheck to imports if not present or use another icon
-import { ShieldCheck } from 'lucide-react';

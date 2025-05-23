@@ -8,10 +8,10 @@ import { Briefcase, TrendingUp, ArrowDownRight, ArrowUpRight, Download } from 'l
 import Image from 'next/image';
 
 const mockPortfolioAssets = [
-  { id: 'BTC', name: 'Bitcoin', quantity: 0.5, price: 68500.00, value: 34250.00, pnl: 2250.00, pnlPercent: 7.03, icon: 'https://placehold.co/32x32/orange/white?text=B' },
-  { id: 'ETH', name: 'Ethereum', quantity: 10, price: 3800.00, value: 38000.00, pnl: -800.00, pnlPercent: -2.06, icon: 'https://placehold.co/32x32/grey/white?text=E' },
-  { id: 'AAPL', name: 'Apple Inc.', quantity: 50, price: 190.50, value: 9525.00, pnl: 525.00, pnlPercent: 5.83, icon: 'https://placehold.co/32x32/black/white?text=A' },
-  { id: 'USD_BAL', name: 'USD Balance', quantity: 12500.00, price: 1.00, value: 12500.00, pnl: 0, pnlPercent: 0, isCash: true, icon: 'https://placehold.co/32x32/green/white?text=$'},
+  { id: 'BTC', name: 'Bitcoin', quantity: 0.5, price: 68500.00, value: 34250.00, pnl: 2250.00, pnlPercent: 7.03, icon: 'https://placehold.co/32x32/orange/white?text=B', dataAiHint: "Bitcoin icon" },
+  { id: 'ETH', name: 'Ethereum', quantity: 10, price: 3800.00, value: 38000.00, pnl: -800.00, pnlPercent: -2.06, icon: 'https://placehold.co/32x32/grey/white?text=E', dataAiHint: "Ethereum icon" },
+  { id: 'AAPL', name: 'Apple Inc.', quantity: 50, price: 190.50, value: 9525.00, pnl: 525.00, pnlPercent: 5.83, icon: 'https://placehold.co/32x32/black/white?text=A', dataAiHint: "Apple icon" },
+  { id: 'USD_BAL', name: 'USD Balance', quantity: 12500.00, price: 1.00, value: 12500.00, pnl: 0, pnlPercent: 0, isCash: true, icon: 'https://placehold.co/32x32/green/white?text=$', dataAiHint: "dollar icon"},
 ];
 
 const overallPortfolio = {
@@ -95,7 +95,7 @@ export default function PortfolioPage() {
               {mockPortfolioAssets.map(asset => (
                 <TableRow key={asset.id}>
                   <TableCell className="hidden sm:table-cell">
-                    <Image src={asset.icon} alt={asset.name} width={32} height={32} className="rounded-full" data-ai-hint={`${asset.name.toLowerCase()} icon`} />
+                    <Image src={asset.icon} alt={asset.name} width={32} height={32} className="rounded-full" data-ai-hint={asset.dataAiHint} />
                   </TableCell>
                   <TableCell className="font-medium">{asset.name}</TableCell>
                   <TableCell className="text-right">{asset.isCash ? '-' : asset.quantity.toLocaleString()}</TableCell>
@@ -119,3 +119,4 @@ export default function PortfolioPage() {
     </div>
   );
 }
+

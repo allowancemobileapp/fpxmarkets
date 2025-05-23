@@ -7,9 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Settings as SettingsIcon, Palette, Bell, Shield, KeyRound, UserCircle, Globe } from 'lucide-react';
-import { ThemeToggleButton } from '@/components/ThemeToggleButton'; // Re-use if appropriate
+import { ThemeToggleButton } from '@/components/ThemeToggleButton'; 
 import { useTheme } from 'next-themes';
-import { Separator } from '@/components/ui/separator';
+import { FormItem } from '@/components/ui/form';
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -164,4 +164,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-import { FormItem } from '@/components/ui/form'; // Add missing import
