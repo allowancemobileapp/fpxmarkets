@@ -4,14 +4,27 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Briefcase, TrendingUp, ArrowDownRight, ArrowUpRight, Download } from 'lucide-react';
+import { Briefcase, TrendingUp, Download, Bitcoin as BitcoinIcon, Apple as AppleIcon, DollarSign as DollarSignIcon } from 'lucide-react';
 import Image from 'next/image';
 
+// Custom SVG component for Ethereum Icon
+const EthereumIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 417" preserveAspectRatio="xMidYMid" className="rounded-full">
+    <path fill="#627EEA" d="m127.961 0l-2.795 9.5v275.668l2.795 2.79l127.962-75.638z"/> {/* Main part blue */}
+    <path fill="#4557A5" d="M127.962 0L0 212.32l127.962 75.638V157.885z"/> {/* Darker blue facet */}
+    <path fill="#8AA0F2" d="m127.961 312.187l-1.575 1.92v98.199l1.575 4.6l127.963-177.959z"/> {/* Lighter blue facet */}
+    <path fill="#627EEA" d="m127.962 416.905v-104.72L0 239.625z"/> {/* Main part blue */}
+    <path fill="#4557A5" d="m127.961 287.958l127.96-75.637l-127.96-58.162z"/> {/* Darker blue facet */}
+    <path fill="#8AA0F2" d="m.001 212.321l127.96 75.637V154.159z"/> {/* Lighter blue facet */}
+  </svg>
+);
+
+
 const mockPortfolioAssets = [
-  { id: 'BTC', name: 'Bitcoin', quantity: 0.5, price: 68500.00, value: 34250.00, pnl: 2250.00, pnlPercent: 7.03, icon: 'https://placehold.co/32x32/orange/white?text=B', dataAiHint: "Bitcoin icon" },
-  { id: 'ETH', name: 'Ethereum', quantity: 10, price: 3800.00, value: 38000.00, pnl: -800.00, pnlPercent: -2.06, icon: 'https://placehold.co/32x32/grey/white?text=E', dataAiHint: "Ethereum icon" },
-  { id: 'AAPL', name: 'Apple Inc.', quantity: 50, price: 190.50, value: 9525.00, pnl: 525.00, pnlPercent: 5.83, icon: 'https://placehold.co/32x32/black/white?text=A', dataAiHint: "Apple icon" },
-  { id: 'USD_BAL', name: 'USD Balance', quantity: 12500.00, price: 1.00, value: 12500.00, pnl: 0, pnlPercent: 0, isCash: true, icon: 'https://placehold.co/32x32/green/white?text=$', dataAiHint: "dollar icon"},
+  { id: 'BTC', name: 'Bitcoin', quantity: 0.5, price: 68500.00, value: 34250.00, pnl: 2250.00, pnlPercent: 7.03, icon: <BitcoinIcon className="h-8 w-8 text-orange-500" /> },
+  { id: 'ETH', name: 'Ethereum', quantity: 10, price: 3800.00, value: 38000.00, pnl: -800.00, pnlPercent: -2.06, icon: <EthereumIcon /> },
+  { id: 'AAPL', name: 'Apple Inc.', quantity: 50, price: 190.50, value: 9525.00, pnl: 525.00, pnlPercent: 5.83, icon: <AppleIcon className="h-8 w-8 text-gray-700 dark:text-gray-300" /> },
+  { id: 'USD_BAL', name: 'USD Balance', quantity: 12500.00, price: 1.00, value: 12500.00, pnl: 0, pnlPercent: 0, isCash: true, icon: <DollarSignIcon className="h-8 w-8 text-green-600" />},
 ];
 
 const overallPortfolio = {
@@ -20,7 +33,9 @@ const overallPortfolio = {
 };
 
 export default function PortfolioPage() {
-  const totalPnlPercent = (overallPortfolio.totalPnl / (overallPortfolio.totalValue - overallPortfolio.totalPnl)) * 100;
+  const totalPnlPercent = overallPortfolio.totalValue - overallPortfolio.totalPnl !== 0 
+    ? (overallPortfolio.totalPnl / (overallPortfolio.totalValue - overallPortfolio.totalPnl)) * 100 
+    : 0;
 
   return (
     <div className="space-y-8">
@@ -81,7 +96,7 @@ export default function PortfolioPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50px] hidden sm:table-cell">Icon</TableHead>
+                <TableHead className="w-[60px] hidden sm:table-cell px-2">Icon</TableHead>
                 <TableHead>Asset</TableHead>
                 <TableHead className="text-right">Quantity</TableHead>
                 <TableHead className="text-right">Price</TableHead>
@@ -94,8 +109,10 @@ export default function PortfolioPage() {
             <TableBody>
               {mockPortfolioAssets.map(asset => (
                 <TableRow key={asset.id}>
-                  <TableCell className="hidden sm:table-cell">
-                    <Image src={asset.icon} alt={asset.name} width={32} height={32} className="rounded-full" data-ai-hint={asset.dataAiHint} />
+                  <TableCell className="hidden sm:table-cell px-2">
+                    <div className="flex items-center justify-center w-8 h-8">
+                       {asset.icon}
+                    </div>
                   </TableCell>
                   <TableCell className="font-medium">{asset.name}</TableCell>
                   <TableCell className="text-right">{asset.isCash ? '-' : asset.quantity.toLocaleString()}</TableCell>
