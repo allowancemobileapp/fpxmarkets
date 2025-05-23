@@ -8,7 +8,7 @@ import {
   Bell,
   Coins,
   LogOut,
-  LayoutDashboard,
+  LayoutDashboard, // This is aliased as Home
   UserCircle,
   Settings,
   LifeBuoy,
@@ -37,10 +37,10 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 // Define Home icon alias immediately after imports
-const Home = LayoutDashboard; 
+const HomeIcon = LayoutDashboard; 
 
 const sidebarNavItems = [
-  { href: '/dashboard', label: 'Home', icon: Home },
+  { href: '/dashboard', label: 'Home', icon: HomeIcon },
   { href: '/dashboard/profile', label: 'Profile', icon: UserCircle },
   { href: '/dashboard/markets', label: 'Market', icon: LineChart },
   { href: '/dashboard/copy-trading', label: 'Copy Trading', icon: Users },
@@ -60,7 +60,9 @@ export default function DashboardHeader() {
 
   const getInitials = (name?: string) => {
     if (!name) return 'FP';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    const parts = name.split(' ').map(n => n[0]);
+    if (parts.length > 2) return parts.slice(0, 2).join('').toUpperCase();
+    return parts.join('').toUpperCase();
   };
 
   return (
@@ -73,33 +75,34 @@ export default function DashboardHeader() {
               <span className="sr-only">Toggle navigation menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="flex flex-col p-0">
+          <SheetContent side="left" className="flex flex-col p-0 w-[280px] sm:w-[320px]"> {/* Increased width */}
             <div className="flex h-16 items-center border-b px-6 shrink-0">
                 <Link href="/dashboard" className="flex items-center gap-2 font-semibold" onClick={() => setIsMobileMenuOpen(false)}>
                 <Coins className="h-7 w-7 text-primary" />
                 <span className="text-lg text-primary">FPX Dashboard</span>
                 </Link>
             </div>
-            <nav className="grid gap-2 text-lg font-medium p-4 flex-1 overflow-y-auto">
+            <nav className="grid gap-1 text-base font-medium p-4 flex-1 overflow-y-auto"> {/* Reduced gap, text-base */}
               {sidebarNavItems.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                    pathname === item.href && "bg-muted text-primary"
-                  )}
-                >
-                  <item.icon className="h-5 w-5" />
-                  {item.label}
-                </Link>
+                 <SheetClose asChild key={item.label}>
+                    <Link
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-muted-foreground transition-all hover:text-primary hover:bg-muted", // Adjusted padding
+                        pathname === item.href && "bg-muted text-primary font-semibold"
+                    )}
+                    >
+                    <item.icon className="h-5 w-5" />
+                    {item.label}
+                    </Link>
+                </SheetClose>
               ))}
             </nav>
             <div className="mt-auto border-t p-4">
                 <Button
                 variant="ghost"
-                className="w-full justify-start text-muted-foreground hover:text-destructive"
+                className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 onClick={() => { logout(); setIsMobileMenuOpen(false);}}
                 >
                 <LogOut className="mr-3 h-5 w-5" />
@@ -109,24 +112,17 @@ export default function DashboardHeader() {
           </SheetContent>
         </Sheet>
         
-        {/* Placeholder for potential breadcrumbs or page title */}
-        {/* <h1 className="text-lg font-semibold hidden md:block">Dashboard</h1> */}
+        {/* Placeholder for potential breadcrumbs or page title. Could show current page title */}
+         <h1 className="text-lg font-semibold hidden md:block text-foreground">
+           {sidebarNavItems.find(item => pathname.startsWith(item.href) && (item.href === '/dashboard' ? pathname === item.href : true ))?.label || 'Dashboard'}
+         </h1>
 
       </div>
 
-      <div className="flex items-center gap-3 md:gap-4">
-        {/* <form className="ml-auto flex-1 sm:flex-initial hidden md:block">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search..."
-              className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px] rounded-lg bg-muted"
-            />
-          </div>
-        </form> */}
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+        {/* Search can be added here if needed across dashboard */}
         <ThemeToggleButton />
-        <Button variant="outline" size="icon" className="relative">
+        <Button variant="outline" size="icon" className="relative rounded-full">
           <Bell className="h-5 w-5" />
           <span className="absolute -top-1 -right-1 flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
@@ -147,7 +143,7 @@ export default function DashboardHeader() {
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user.username}</p>
+                  <p className="text-sm font-medium leading-none">{user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.username}</p>
                   <p className="text-xs leading-none text-muted-foreground">
                     {user.email}
                   </p>
