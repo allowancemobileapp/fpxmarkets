@@ -3,9 +3,9 @@
 
 import Link from "next/link";
 import { Coins, Menu, X, LogOut, LayoutDashboard, UserCircle, Globe } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button"; // Import buttonVariants
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { useState, useEffect } from "react"; // Added useEffect for loading state consistency
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle } from "@/components/ui/sheet"; // Added SheetHeader, SheetTitle
+import { useState, useEffect } from "react";
 import { ThemeToggleButton } from "@/components/ThemeToggleButton";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,7 +22,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils"; // Import cn
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/quick-start", label: "Quick Start" },
@@ -38,11 +38,11 @@ const navItems = [
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, logout, loading: authLoading } = useAuth(); // Renamed loading to authLoading
+  const { user, logout, loading: authLoading } = useAuth();
   const pathname = usePathname();
   const { toast } = useToast();
   const [language, setLanguage] = useState("en");
-  const [isClient, setIsClient] = useState(false); // For preventing hydration mismatch with loading state
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -62,9 +62,16 @@ export default function Header() {
 
   const handleLanguageChange = (lang: string) => {
     setLanguage(lang);
+    let langName = "English";
+    if (lang === 'es') langName = "Español";
+    if (lang === 'fr') langName = "Français";
+    if (lang === 'de') langName = "Deutsch";
+    if (lang === 'zh') langName = "中文 (Chinese)";
+    if (lang === 'ja') langName = "日本語 (Japanese)";
+
     toast({
       title: "Language Switched (UI Demo)",
-      description: `Language changed to ${lang === 'en' ? 'English' : lang === 'es' ? 'Español' : 'Français'}. Actual translation not implemented.`,
+      description: `Language changed to ${langName}. Actual translation not implemented.`,
     });
   };
 
@@ -118,6 +125,9 @@ export default function Header() {
                 <DropdownMenuRadioItem value="en">English</DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="es">Español</DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="fr">Français</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="de">Deutsch</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="zh">中文 (Chinese)</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="ja">日本語 (Japanese)</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -176,7 +186,6 @@ export default function Header() {
               </Button>
             </>
           ) : (
-            // Fallback for SSR or when isClient is false (initial render)
              <div className="hidden md:flex items-center gap-2">
               <div className="h-9 w-20 bg-muted rounded-md animate-pulse"></div>
               <div className="h-9 w-32 bg-muted rounded-md animate-pulse"></div>
@@ -190,20 +199,21 @@ export default function Header() {
                 <span className="sr-only">Open menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full max-w-xs bg-background p-6">
-              <div className="flex flex-col space-y-5 h-full">
-                <div className="flex justify-between items-center">
-                   <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Coins className="h-7 w-7 text-primary" />
-                    <span className="text-lg font-bold text-primary">FPX Markets</span>
-                  </Link>
-                  <SheetClose asChild>
-                     <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
-                        <X className="h-6 w-6" />
-                        <span className="sr-only">Close menu</span>
-                      </Button>
-                  </SheetClose>
-                </div>
+            <SheetContent side="right" className="w-full max-w-xs bg-background p-0"> {/* Changed p-6 to p-0 for header */}
+              <SheetHeader className="flex flex-row justify-between items-center p-4 border-b"> {/* Added SheetHeader */}
+                <SheetTitle className="sr-only">Main Menu</SheetTitle> {/* Added sr-only SheetTitle */}
+                 <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Coins className="h-7 w-7 text-primary" />
+                  <span className="text-lg font-bold text-primary">FPX Markets</span>
+                </Link>
+                <SheetClose asChild>
+                   <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+                      <X className="h-6 w-6" />
+                      <span className="sr-only">Close menu</span>
+                    </Button>
+                </SheetClose>
+              </SheetHeader>
+              <div className="p-6 flex flex-col space-y-5 h-[calc(100%-4rem)]"> {/* Adjust height for header */}
                 <Separator />
                 <nav className="flex flex-col space-y-3 flex-grow">
                   {displayedNavItems.map((item) => (
@@ -276,3 +286,4 @@ export default function Header() {
     </header>
   );
 }
+
