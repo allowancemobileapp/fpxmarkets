@@ -20,7 +20,6 @@ export default function Footer() {
                 Privacy Policy
             </Link>
             <span className="text-muted-foreground/50">|</span>
-            {/* Placeholder for Terms of Service link */}
             <Link href="/terms-of-service" className="hover:text-primary hover:underline">
                 Terms of Service
             </Link>

@@ -4,11 +4,19 @@
 import GenericPageLayout from "@/components/layout/GenericPageLayout";
 import { useEffect, useState } from "react";
 import { format } from 'date-fns';
+// import type { Metadata } from 'next'; // Metadata is not used in client components
+
+// export const metadata: Metadata = {
+//   title: 'Terms of Service - FPX Markets',
+//   description: 'Read the Terms of Service for using FPX Markets platform and services.',
+// };
 
 export default function TermsOfServicePage() {
   const [lastRevisedDate, setLastRevisedDate] = useState('');
 
   useEffect(() => {
+    // This will set the date to the current date when the component mounts
+    // For a static "Last Revised" date, you can hardcode it or fetch from a CMS
     setLastRevisedDate(format(new Date(), 'MMMM do, yyyy'));
   }, []);
 
@@ -84,5 +92,4 @@ export default function TermsOfServicePage() {
     </GenericPageLayout>
   );
 }
-
     

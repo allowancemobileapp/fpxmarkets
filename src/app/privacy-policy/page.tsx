@@ -2,7 +2,7 @@
 'use client';
 
 import GenericPageLayout from "@/components/layout/GenericPageLayout";
-import type { Metadata } from 'next'; // Although metadata is not used in client components, keeping for structure if we make parts server-side later
+// import type { Metadata } from 'next'; // Metadata should be defined in a server component or layout if static
 import { useEffect, useState } from "react";
 import { format } from 'date-fns';
 
@@ -15,7 +15,9 @@ export default function PrivacyPolicyPage() {
   const [lastRevisedDate, setLastRevisedDate] = useState('');
 
   useEffect(() => {
-    setLastRevisedDate(format(new Date(), 'MMMM do, yyyy'));
+    // Simulating a fixed date from your example, but formatting it dynamically
+    const exampleDate = new Date(2017, 1, 5); // Month is 0-indexed, so 1 is February
+    setLastRevisedDate(format(exampleDate, 'MMMM do, yyyy'));
   }, []);
 
   return (
@@ -28,9 +30,9 @@ export default function PrivacyPolicyPage() {
           Last Revised: {lastRevisedDate}
         </p>
 
-        <h2 className="text-2xl font-semibold text-primary pt-4">Introduction</h2>
+        <h2 className="text-xl font-semibold text-primary pt-4">Introduction</h2>
         <p>
-          FPX Markets (“us“, “we”, or “Company“) respects the privacy of our users (each, “you” or “User“) and is committed to protecting the privacy of Users who access our website or any other online services we provide (collectively: the “Services“).
+          FPX Markets (“us“, “we”, or “Company“) respects the privacy of our users (each, “you” or “User“) and is committed to protecting the privacy of Users who access our website, our mobile application (the "Application" - if applicable), or any other online services we provide (collectively: the “Services“).
         </p>
         <p>
           The Company has prepared this Privacy Policy to outline our practices with respect to collecting, using, and disclosing your information when you use the Services. We encourage you to read the Privacy Policy carefully and use it to make informed decisions. By using the Services, you agree to the terms of this Privacy Policy, and your continued use of the Services constitutes your ongoing agreement to this Privacy Policy.
@@ -40,13 +42,13 @@ export default function PrivacyPolicyPage() {
         </p>
         <ul className="list-disc list-inside space-y-1 pl-4 text-muted-foreground">
           <li>What type of information we collect</li>
-          <li>Cookies and similar technologies (like Google Analytics)</li>
-          <li>How we use the information we collect</li>
+          <li>Cookies and Google Analytics</li>
+          <li>How we use the information</li>
           <li>With whom we share the information and for what purpose</li>
           <li>For how long we retain the information</li>
           <li>How we protect your information</li>
-          <li>Third-party advertisements and services</li>
-          <li>Your choices and rights regarding your information</li>
+          <li>Advertisements</li>
+          <li>Advertising ID and Advertising Identifier (if applicable to mobile apps)</li>
           <li>How to contact us</li>
         </ul>
 
@@ -72,7 +74,7 @@ export default function PrivacyPolicyPage() {
           </li>
         </ul>
 
-        <h2 className="text-xl font-semibold text-primary pt-4">2. Cookies and Similar Technologies</h2>
+        <h2 className="text-xl font-semibold text-primary pt-4">2. Cookies and Google Analytics</h2>
         <p className="text-muted-foreground">
           Our Services use "cookies" and other similar technologies (e.g., web beacons, pixels, ad tags, and device identifiers) to enhance your user experience, analyze trends, administer the website, track users' movements around the website, and gather demographic information about our user base as a whole.
         </p>
@@ -146,15 +148,16 @@ export default function PrivacyPolicyPage() {
           However, please remember that no method of transmission over the Internet, or method of electronic storage, is 100% secure. While we strive to use commercially acceptable means to protect your Personal Information, we cannot guarantee its absolute security.
         </p>
 
-        <h2 className="text-xl font-semibold text-primary pt-4">7. Third-Party Links and Advertisements</h2>
+        <h2 className="text-xl font-semibold text-primary pt-4">7. Advertisements</h2>
         <p className="text-muted-foreground">
-          Occasionally, at our discretion, we may include or offer third-party products or services on our website. These third-party sites have separate and independent privacy policies. We therefore have no responsibility or liability for the content and activities of these linked sites. Nonetheless, we seek to protect the integrity of our site and welcome any feedback about these sites.
+          Our Services may display advertisements from third parties. These advertisers may use cookies and similar technologies to collect information about your activities on our Services and other sites to provide you targeted advertising. We are not responsible for the privacy practices of these advertisers or third-party websites.
         </p>
+         <h2 className="text-xl font-semibold text-primary pt-4">8. Advertising ID and Advertising Identifier</h2>
         <p className="text-muted-foreground">
-          Our Services may also display advertisements from third parties. These advertisers may use cookies and similar technologies to collect information about your activities on our Services and other sites to provide you targeted advertising.
+            (This section is typically relevant for mobile applications.) If you use our mobile application, we may collect and use your device's advertising identifier (such as IDFA for iOS or AAID for Android) for advertising and analytics purposes, subject to your device settings and consent. You can usually reset these identifiers or opt-out of personalized advertising through your device's privacy settings.
         </p>
         
-        <h2 className="text-xl font-semibold text-primary pt-4">8. Your Choices and Rights</h2>
+        <h2 className="text-xl font-semibold text-primary pt-4">9. Your Choices and Rights</h2>
         <p className="text-muted-foreground">
           Depending on your jurisdiction, you may have certain rights regarding your personal information, such as the right to access, correct, delete, or restrict its processing. You may also have the right to object to processing and, where applicable, the right to data portability.
         </p>
@@ -162,17 +165,17 @@ export default function PrivacyPolicyPage() {
           You can typically manage your account information and communication preferences through your account settings. To exercise other rights, please contact us using the details provided below.
         </p>
 
-        <h2 className="text-xl font-semibold text-primary pt-4">9. Children's Privacy</h2>
+        <h2 className="text-xl font-semibold text-primary pt-4">10. Children's Privacy</h2>
         <p className="text-muted-foreground">
             Our Services are not intended for individuals under the age of 18. We do not knowingly collect personal information from children under 18. If we become aware that a child under 18 has provided us with personal information, we will take steps to delete such information.
         </p>
 
-        <h2 className="text-xl font-semibold text-primary pt-4">10. Changes to This Privacy Policy</h2>
+        <h2 className="text-xl font-semibold text-primary pt-4">11. Changes to This Privacy Policy</h2>
         <p className="text-muted-foreground">
             We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Revised" date. You are advised to review this Privacy Policy periodically for any changes.
         </p>
 
-        <h2 className="text-xl font-semibold text-primary pt-4">11. How to Contact Us</h2>
+        <h2 className="text-xl font-semibold text-primary pt-4">12. How to Contact Us</h2>
         <p className="text-muted-foreground">
           If you have any questions or concerns about this Privacy Policy or our data practices, please contact us at:
         </p>
@@ -185,12 +188,10 @@ export default function PrivacyPolicyPage() {
 
         <div className="mt-8 pt-6 border-t border-border">
             <p className="text-xs text-muted-foreground italic">
-                <strong>Disclaimer:</strong> This is a sample Privacy Policy provided for illustrative purposes only. It is not a substitute for professional legal advice. You should consult with a legal professional to ensure your Privacy Policy is compliant with all applicable laws and regulations and accurately reflects your data processing practices.
+                <strong>Disclaimer:</strong> This is a sample Privacy Policy provided for illustrative purposes only and based on the structure you provided. It is not a substitute for professional legal advice. You should consult with a legal professional to ensure your Privacy Policy is compliant with all applicable laws and regulations and accurately reflects your data processing practices.
             </p>
         </div>
       </div>
     </GenericPageLayout>
   );
 }
-
-    

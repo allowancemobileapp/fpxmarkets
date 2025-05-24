@@ -20,6 +20,7 @@ const moreLinks = [
   { href: "/partners", label: "Partnership Programs", description: "Discover opportunities to collaborate with FPX Markets." },
   { href: "/resources", label: "Trading Resources", description: "Access educational materials, market analysis, and trading tools." },
   { href: "/privacy-policy", label: "Privacy Policy", description: "Read how we handle and protect your personal data." },
+  { href: "/terms-of-service", label: "Terms of Service", description: "Review our terms and conditions of using our services." },
   { href: "/contact", label: "Contact Us", description: "Get in touch with our support team for any inquiries." },
 ];
 
