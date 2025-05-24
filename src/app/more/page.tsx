@@ -19,6 +19,7 @@ const moreLinks = [
   { href: "/about", label: "About Us", description: "Learn about our mission, values, and the team behind FPX Markets." },
   { href: "/partners", label: "Partnership Programs", description: "Discover opportunities to collaborate with FPX Markets." },
   { href: "/resources", label: "Trading Resources", description: "Access educational materials, market analysis, and trading tools." },
+  { href: "/privacy-policy", label: "Privacy Policy", description: "Read how we handle and protect your personal data." },
   { href: "/contact", label: "Contact Us", description: "Get in touch with our support team for any inquiries." },
 ];
 
@@ -59,3 +60,5 @@ export default function MorePage() {
     </GenericPageLayout>
   );
 }
+
+    
