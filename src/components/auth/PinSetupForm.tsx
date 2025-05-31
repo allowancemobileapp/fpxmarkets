@@ -1,172 +1,172 @@
+
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import React, { useState, useRef, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { PinSetupFormSchema, type PinSetupFormValues } from '@/lib/types';
-import { handlePinSetup } from '@/lib/actions'; // Simulated action
+import { PinSetupFormSchema, type PinSetupFormValues, type SetupPinPayload, type AppUser } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function PinSetupForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const { completePinSetup, user } = useAuth();
+  const { firebaseUser, appUser, updateAppUser, isLoading: authIsLoading } = useAuth();
   const router = useRouter();
 
   const form = useForm<PinSetupFormValues>({
     resolver: zodResolver(PinSetupFormSchema),
     defaultValues: {
-      pin1: '', pin2: '', pin3: '', pin4: '',
-      confirmPin1: '', confirmPin2: '', confirmPin3: '', confirmPin4: '',
+      pin: '',
+      confirmPin: '',
     },
   });
 
   const pinInputsRef = useRef<(HTMLInputElement | null)[]>([]);
   const confirmPinInputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    index: number,
-    fieldGroup: 'pin' | 'confirmPin'
-  ) => {
-    const value = e.target.value;
-    const groupRefs = fieldGroup === 'pin' ? pinInputsRef : confirmPinInputsRef;
-    const fieldNameBase = fieldGroup === 'pin' ? 'pin' : 'confirmPin';
-
-    form.setValue(`${fieldNameBase}${index + 1}` as keyof PinSetupFormValues, value);
-
-    if (value && index < 3) {
-      groupRefs.current[index + 1]?.focus();
+  // Function to combine individual pin digits into a single string
+  const getCombinedPin = (baseName: 'pin' | 'confirmPin'): string => {
+    let combined = '';
+    for (let i = 1; i <= 4; i++) {
+      combined += form.getValues((baseName + i) as keyof PinSetupFormValues<false>) || '';
     }
+    return combined;
   };
+  
+  // Modified PinSetupFormValues to work with individual inputs if desired by schema
+  // For this simplified schema, we'll use single fields for pin and confirmPin
+  // type PinSetupFormValuesWithDigits = PinSetupFormValues & {
+  //   pin1?: string; pin2?: string; pin3?: string; pin4?: string;
+  //   confirmPin1?: string; confirmPin2?: string; confirmPin3?: string; confirmPin4?: string;
+  // };
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    index: number,
-    fieldGroup: 'pin' | 'confirmPin'
-  ) => {
-    const groupRefs = fieldGroup === 'pin' ? pinInputsRef : confirmPinInputsRef;
-    if (e.key === 'Backspace' && !e.currentTarget.value && index > 0) {
-      groupRefs.current[index - 1]?.focus();
+
+  useEffect(() => {
+    if (!authIsLoading && !firebaseUser) {
+      console.log('[PinSetupForm] No Firebase user, redirecting to login.');
+      router.push('/login');
+    } else if (!authIsLoading && appUser && !appUser.profile_completed_at) {
+      console.log('[PinSetupForm] Profile not complete, redirecting to /signup-details.');
+      router.push('/signup-details');
+    } else if (!authIsLoading && appUser && appUser.pin_setup_completed_at) {
+      console.log('[PinSetupForm] PIN already set up, redirecting to dashboard.');
+      router.push('/dashboard');
     }
-  };
+  }, [firebaseUser, appUser, authIsLoading, router]);
 
 
   async function onSubmit(values: PinSetupFormValues) {
     setIsLoading(true);
-    const fullPin = `${values.pin1}${values.pin2}${values.pin3}${values.pin4}`;
-    // Simulate API call
-    const result = await handlePinSetup({ pin: fullPin, userId: user?.id || 'unknown' }); // Simulated action
-    setIsLoading(false);
+    if (!firebaseUser) {
+      toast({ title: 'Error', description: 'User session not found.', variant: 'destructive' });
+      setIsLoading(false);
+      return;
+    }
 
-    if (result.success) {
-      toast({
-        title: 'PIN Setup Successful',
-        description: 'Your Trading PIN has been set.',
+    const payload: SetupPinPayload = {
+      firebaseAuthUid: firebaseUser.uid,
+      pin: values.pin, // Use the combined pin from the form field
+    };
+
+    try {
+      const response = await fetch('/api/auth/setup-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
-      completePinSetup(); // Update AuthContext and redirect
-    } else {
+      const result = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: 'PIN Setup Successful',
+          description: 'Your Trading PIN has been set.',
+        });
+        updateAppUser(result as AppUser); // AuthContext will handle redirect to /dashboard
+      } else {
+        toast({
+          title: 'PIN Setup Failed',
+          description: result.message || 'Could not set PIN. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error("Error setting up PIN:", error);
       toast({
-        title: 'PIN Setup Failed',
-        description: result.message || 'Could not set PIN. Please try again.',
+        title: 'Error',
+        description: 'An unexpected error occurred during PIN setup.',
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
     }
   }
-  // Redirect if user is not available or PIN already set
-  useEffect(() => {
-    if (!user) {
-      router.push('/login');
-    } else if (user.pinSetupCompleted) {
-      router.push('/dashboard');
-    }
-  }, [user, router]);
-
-  if (!user || user.pinSetupCompleted) {
-    return <div className="text-center p-8"><Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" /> <p className="mt-4">Loading...</p></div>;
+  
+  if (authIsLoading || !firebaseUser || !appUser || !appUser.profile_completed_at) {
+     return <div className="text-center p-8"><Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" /> <p className="mt-2">Loading user data...</p></div>;
   }
 
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div>
-          <FormLabel>Enter 4-Digit PIN</FormLabel>
-          <div className="flex justify-center space-x-2 mt-2">
-            {([0, 1, 2, 3] as const).map((index) => (
-              <FormField
-                key={`pin${index}`}
-                control={form.control}
-                name={`pin${index + 1}` as keyof PinSetupFormValues}
-                render={({ field }) => (
-                  <FormItem className="w-1/4">
-                    <FormControl>
-                      <Input
-                        {...field}
-                        ref={(el) => (pinInputsRef.current[index] = el)}
-                        type="password" // Use password for masking, or text with custom styling
-                        maxLength={1}
-                        className="text-center text-2xl h-14"
-                        onChange={(e) => handleInputChange(e, index, 'pin')}
-                        onKeyDown={(e) => handleKeyDown(e, index, 'pin')}
-                      />
-                    </FormControl>
-                    <FormMessage className="text-xs text-center" />
-                  </FormItem>
-                )}
-              />
-            ))}
-          </div>
-        </div>
+        <FormField
+          control={form.control}
+          name="pin"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Enter 4-Digit PIN</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  type="password" 
+                  maxLength={4}
+                  placeholder="••••"
+                  className="text-center text-2xl h-14 tracking-[.5em]"
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, ''); // Allow only digits
+                    field.onChange(val);
+                  }}
+                />
+              </FormControl>
+              <FormMessage className="text-xs text-center" />
+            </FormItem>
+          )}
+        />
 
-        <div>
-          <FormLabel>Confirm 4-Digit PIN</FormLabel>
-          <div className="flex justify-center space-x-2 mt-2">
-            {([0, 1, 2, 3] as const).map((index) => (
-              <FormField
-                key={`confirmPin${index}`}
-                control={form.control}
-                name={`confirmPin${index + 1}` as keyof PinSetupFormValues}
-                render={({ field }) => (
-                  <FormItem className="w-1/4">
-                    <FormControl>
-                      <Input
-                        {...field}
-                        ref={(el) => (confirmPinInputsRef.current[index] = el)}
-                        type="password"
-                        maxLength={1}
-                        className="text-center text-2xl h-14"
-                        onChange={(e) => handleInputChange(e, index, 'confirmPin')}
-                        onKeyDown={(e) => handleKeyDown(e, index, 'confirmPin')}
-                      />
-                    </FormControl>
-                     <FormMessage className="text-xs text-center" />
-                  </FormItem>
-                )}
-              />
-            ))}
-          </div>
-           {/* Display general error for PIN mismatch here */}
-            {form.formState.errors.confirmPin4 && form.formState.errors.confirmPin4.message === "PINs do not match." && (
-              <p className="text-sm font-medium text-destructive text-center mt-2">
-                PINs do not match.
-              </p>
-            )}
-        </div>
+        <FormField
+          control={form.control}
+          name="confirmPin"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Confirm 4-Digit PIN</FormLabel>
+              <FormControl>
+                 <Input
+                  {...field}
+                  type="password"
+                  maxLength={4}
+                  placeholder="••••"
+                  className="text-center text-2xl h-14 tracking-[.5em]"
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, ''); // Allow only digits
+                    field.onChange(val);
+                  }}
+                />
+              </FormControl>
+              <FormMessage className="text-xs text-center" />
+            </FormItem>
+          )}
+        />
         
-        <Button type="submit" disabled={isLoading} className="w-full">
+        <Button type="submit" disabled={isLoading || authIsLoading} className="w-full">
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Set Trading PIN'}
         </Button>
       </form>
     </Form>
   );
 }
-
-// Need to import useRouter and useEffect from React
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';

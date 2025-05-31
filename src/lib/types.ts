@@ -13,34 +13,29 @@ export const MarketInsightsFormSchema = z.object({
 });
 export type MarketInsightsFormValues = z.infer<typeof MarketInsightsFormSchema>;
 
-// User Type
-export interface User {
-  id: string;
+// User Type for Application Logic (what client components might expect)
+export interface AppUser {
+  id: string; // This will be the PostgreSQL user ID (uuid)
+  firebase_auth_uid: string;
   email: string;
-  username: string;
-  firstName?: string;
-  lastName?: string;
-  accountType?: AccountType; // Updated to use AccountType
-  phoneNumber?: string;
-  country?: string;
-  profileCompleted: boolean;
-  pinSetupCompleted: boolean;
-  // We might add a flag here like 'hasMadeFirstDeposit: boolean' in a real app
+  username: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  account_type: AccountType | null; // Plan name like 'Beginner', 'Pro'
+  phone_number: string | null;
+  country: string | null;
+  profile_completed_at: string | null; // ISO date string
+  pin_setup_completed_at: string | null; // ISO date string
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
 }
 
 export type AccountType = 'Beginner' | 'Personal' | 'Pro' | 'Professional' | 'Corporate';
 export const accountTypeValues: [AccountType, ...AccountType[]] = ['Beginner', 'Personal', 'Pro', 'Professional', 'Corporate'];
 
-
-// Signup Form Schema
+// Signup Form Schema (initial Firebase signup)
 export const SignupFormSchema = z.object({
-  accountType: z.enum(accountTypeValues, { required_error: "Account type is required." }),
-  firstName: z.string().min(2, "First name must be at least 2 characters."),
-  lastName: z.string().min(2, "Last name must be at least 2 characters."),
-  username: z.string().min(3, "Username must be at least 3 characters."),
   email: z.string().email("Invalid email address."),
-  phoneNumber: z.string().min(7, "Phone number seems too short.").optional().or(z.literal('')),
-  country: z.string().min(2, "Country is required."),
   password: z.string().min(8, "Password must be at least 8 characters."),
   confirmPassword: z.string(),
 }).refine(data => data.password === data.confirmPassword, {
@@ -48,6 +43,19 @@ export const SignupFormSchema = z.object({
   path: ["confirmPassword"],
 });
 export type SignupFormValues = z.infer<typeof SignupFormSchema>;
+
+
+// Signup Details Form Schema (after Firebase signup, for PG profile)
+export const SignupDetailsFormSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters."),
+  lastName: z.string().min(2, "Last name must be at least 2 characters."),
+  username: z.string().min(3, "Username must be at least 3 characters.").regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores."),
+  accountType: z.enum(accountTypeValues, { required_error: "Account type is required." }),
+  phoneNumber: z.string().min(7, "Phone number seems too short.").optional().or(z.literal('')),
+  country: z.string().min(2, "Country is required."),
+});
+export type SignupDetailsFormValues = z.infer<typeof SignupDetailsFormSchema>;
+
 
 // Login Form Schema
 export const LoginFormSchema = z.object({
@@ -57,18 +65,37 @@ export const LoginFormSchema = z.object({
 export type LoginFormValues = z.infer<typeof LoginFormSchema>;
 
 // Trading PIN Setup Schema
+// The form will handle individual digits, but the schema validates the combined PIN.
 export const PinSetupFormSchema = z.object({
-  pin1: z.string().length(1, "Required").regex(/^\d$/, "Must be a digit"),
-  pin2: z.string().length(1, "Required").regex(/^\d$/, "Must be a digit"),
-  pin3: z.string().length(1, "Required").regex(/^\d$/, "Must be a digit"),
-  pin4: z.string().length(1, "Required").regex(/^\d$/, "Must be a digit"),
-  confirmPin1: z.string().length(1, "Required").regex(/^\d$/, "Must be a digit"),
-  confirmPin2: z.string().length(1, "Required").regex(/^\d$/, "Must be a digit"),
-  confirmPin3: z.string().length(1, "Required").regex(/^\d$/, "Must be a digit"),
-  confirmPin4: z.string().length(1, "Required").regex(/^\d$/, "Must be a digit"),
-}).refine(data => 
-  `${data.pin1}${data.pin2}${data.pin3}${data.pin4}` === `${data.confirmPin1}${data.confirmPin2}${data.confirmPin3}${data.confirmPin4}`, {
+  pin: z.string().length(4, "PIN must be 4 digits.").regex(/^\d{4}$/, "PIN must contain only digits."),
+  confirmPin: z.string().length(4, "Confirm PIN must be 4 digits.").regex(/^\d{4}$/, "Confirm PIN must contain only digits."),
+}).refine(data => data.pin === data.confirmPin, {
   message: "PINs do not match.",
-  path: ["confirmPin4"], // Or a general path
+  path: ["confirmPin"], 
 });
 export type PinSetupFormValues = z.infer<typeof PinSetupFormSchema>;
+
+
+// Schemas for API requests (matching backend expectations)
+export const UpdateProfileRequestSchema = z.object({
+  firebaseAuthUid: z.string(), // Used for identification
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  username: z.string().optional(),
+  phoneNumber: z.string().optional(),
+  country: z.string().optional(),
+  // accountType might be updatable through a different flow or not at all by user directly
+});
+export type UpdateProfilePayload = z.infer<typeof UpdateProfileRequestSchema>;
+
+export const RegisterUserRequestSchema = SignupDetailsFormSchema.extend({
+  email: z.string().email(), // Email comes from Firebase user
+  firebaseAuthUid: z.string(),
+});
+export type RegisterUserPayload = z.infer<typeof RegisterUserRequestSchema>;
+
+export const SetupPinRequestSchema = z.object({
+  firebaseAuthUid: z.string(),
+  pin: z.string().length(4).regex(/^\d{4}$/), // The actual 4-digit PIN
+});
+export type SetupPinPayload = z.infer<typeof SetupPinRequestSchema>;

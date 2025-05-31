@@ -1,21 +1,24 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LoginFormSchema, type LoginFormValues, type User } from '@/lib/types';
-import { handleLogin } from '@/lib/actions'; // Simulated action
+import { LoginFormSchema, type LoginFormValues } from '@/lib/types';
+// Removed: import { handleLogin } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation'; // Keep for potential future use
 
 export default function LoginForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth(); // Get login function from AuthContext
+  const { handleFirebaseEmailPasswordLogin } = useAuth(); // Use from AuthContext
+  const router = useRouter(); // Keep for now
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(LoginFormSchema),
@@ -27,23 +30,22 @@ export default function LoginForm() {
 
   async function onSubmit(values: LoginFormValues) {
     setIsLoading(true);
-    // Simulate API call
-    const result = await handleLogin(values); // This action is simulated
-    setIsLoading(false);
-
-    if (result.success && result.user) {
+    try {
+      const userCredential = await handleFirebaseEmailPasswordLogin(values.email, values.password);
       toast({
         title: 'Login Successful',
-        description: `Welcome back, ${result.user.username}!`,
+        description: `Welcome back, ${userCredential.user.email}!`,
       });
-      login(result.user as User); // Update AuthContext
-      // Router will redirect via AuthContext effect
-    } else {
+      // AuthContext's onAuthStateChanged will handle redirection based on profile status
+      // No explicit router.push needed here for that.
+    } catch (error: any) {
       toast({
         title: 'Login Failed',
-        description: result.message || 'Invalid credentials or server error.',
+        description: error.message || 'Invalid credentials or server error.',
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
     }
   }
 
