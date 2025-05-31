@@ -2,7 +2,7 @@
 // src/app/api/auth/register-user/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import { RegisterUserRequestSchema, type RegisterUserPayload, type AppUser, type AccountType } from '@/lib/types';
+import { RegisterUserRequestSchema, type RegisterUserPayload, type AppUser } from '@/lib/types';
 import { tradingPlans } from '@/config/tradingPlans'; // To map accountType name to ID
 
 export async function POST(request: NextRequest) {
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     lastName,
     accountType, // This is the plan name like 'Beginner'
     phoneNumber,
-    country,
+    country, // This is the full country name from the form
   } = payload;
 
   console.log(`[API /auth/register-user POST] SERVER: Processing registration for firebaseAuthUid: ${firebaseAuthUid}, email: ${email}, accountType: ${accountType}`);
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     console.log(`[API /auth/register-user POST] SERVER: Invalid account type specified: ${accountType}`);
     return NextResponse.json({ message: `Invalid account type: ${accountType}` }, { status: 400 });
   }
-  const tradingPlanId = selectedPlan.id; // Assumes 'id' field in tradingPlans config
+  const tradingPlanId = selectedPlan.id;
 
   try {
     // Check if user already exists by firebase_auth_uid
@@ -53,6 +53,9 @@ export async function POST(request: NextRequest) {
       userId = existingUserResult.rows[0].id;
       isNewUser = false;
       console.log(`[API /auth/register-user POST] SERVER: User ${firebaseAuthUid} exists (ID: ${userId}). Updating profile.`);
+      // Assuming 'country' in users table is TEXT or VARCHAR to store full name, or 'country_code' if it's CHAR(2)
+      // If using country_code CHAR(2), you'd need to map the full country name to its code here.
+      // For now, assuming users.country can store the full name.
       await query(
         `UPDATE users SET 
            username = $1, first_name = $2, last_name = $3, trading_plan_id = $4, 
@@ -63,28 +66,27 @@ export async function POST(request: NextRequest) {
     } else {
       // New user, insert their profile
       console.log(`[API /auth/register-user POST] SERVER: New user ${firebaseAuthUid}. Inserting profile.`);
+      // The user's schema doesn't have 'account_type_name'. This is derived via join.
+      // If using country_code CHAR(2), map 'country' to its code before insert.
+      // For now, assuming users.country can store the full name.
       const newUserResult = await query(
-        `INSERT INTO users (firebase_auth_uid, email, username, first_name, last_name, trading_plan_id, phone_number, country, profile_completed_at, account_type_name)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9)
+        `INSERT INTO users (firebase_auth_uid, email, username, first_name, last_name, trading_plan_id, phone_number, country, profile_completed_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
          RETURNING id`,
-        [firebaseAuthUid, email, username, firstName, lastName, tradingPlanId, phoneNumber, country, accountType]
+        [firebaseAuthUid, email, username, firstName, lastName, tradingPlanId, phoneNumber, country]
       );
       userId = newUserResult.rows[0].id;
     }
 
     // Create a default USDT wallet if it's a truly new user
     if (isNewUser) {
-      const walletTypeResult = await query('SELECT id FROM wallet_types WHERE currency_code = $1', ['USDT']);
-      if (walletTypeResult.rows.length > 0) {
-        const walletTypeId = walletTypeResult.rows[0].id;
-        await query(
-          'INSERT INTO wallets (user_id, wallet_type_id, balance) VALUES ($1, $2, $3)',
-          [userId, walletTypeId, 0.00]
-        );
-        console.log(`[API /auth/register-user POST] SERVER: Default USDT wallet created for new user ID: ${userId}`);
-      } else {
-        console.warn('[API /auth/register-user POST] SERVER: USDT wallet type not found. Default wallet not created.');
-      }
+      // Assuming 'wallets' table schema as provided by user context (user_id UUID, currency VARCHAR(10) default 'USDT', balance NUMERIC)
+      // The old schema used wallet_type_id, the new schema directly uses currency.
+      await query(
+        'INSERT INTO wallets (user_id, currency, balance) VALUES ($1, $2, $3)',
+        [userId, 'USDT', 0.00]
+      );
+      console.log(`[API /auth/register-user POST] SERVER: Default USDT wallet created for new user ID: ${userId}`);
     }
 
     // Fetch the complete user profile to return
@@ -92,7 +94,7 @@ export async function POST(request: NextRequest) {
        `SELECT 
          u.id, u.firebase_auth_uid, u.email, u.username, u.first_name, u.last_name, 
          u.phone_number, u.country, u.profile_completed_at, u.pin_setup_completed_at,
-         u.created_at, u.updated_at,
+         u.is_active, u.is_email_verified, u.created_at, u.updated_at,
          tp.name as account_type 
        FROM users u
        LEFT JOIN trading_plans tp ON u.trading_plan_id = tp.id
@@ -112,7 +114,10 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     if (error.code === '23505') { // Unique constraint violation (e.g., username or email if unique in DB)
       console.error(`[API /auth/register-user POST] SERVER: Unique constraint violation for ${firebaseAuthUid}:`, error.detail);
-      return NextResponse.json({ message: 'Registration failed. Username or email may already be taken.', detail: error.detail }, { status: 409 });
+      let field = 'unknown field';
+      if (error.constraint === 'users_username_key') field = 'Username';
+      if (error.constraint === 'users_email_key') field = 'Email';
+      return NextResponse.json({ message: `${field} may already be taken.` , detail: error.detail }, { status: 409 });
     }
     console.error(`[API /auth/register-user POST] SERVER: Error during user registration for ${firebaseAuthUid}:`, error);
     return NextResponse.json({ message: 'Internal server error during registration' }, { status: 500 });

@@ -21,11 +21,14 @@ export interface AppUser {
   username: string | null;
   first_name: string | null;
   last_name: string | null;
-  account_type: AccountType | null; // Plan name like 'Beginner', 'Pro'
+  account_type: AccountType | null; // This is the plan NAME like 'Beginner', 'Pro', derived from trading_plans.name
+  trading_plan_id?: number | null; // Added for clarity, though account_type (name) is primarily used in frontend
   phone_number: string | null;
-  country: string | null;
+  country: string | null; // The form collects full country name. Schema has country_code CHAR(2). API needs to handle this if schema is strict.
   profile_completed_at: string | null; // ISO date string
   pin_setup_completed_at: string | null; // ISO date string
+  is_active?: boolean; // Added from user's schema
+  is_email_verified?: boolean; // Added from user's schema
   created_at: string; // ISO date string
   updated_at: string; // ISO date string
 }
@@ -52,7 +55,7 @@ export const SignupDetailsFormSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters.").regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores."),
   accountType: z.enum(accountTypeValues, { required_error: "Account type is required." }),
   phoneNumber: z.string().min(7, "Phone number seems too short.").optional().or(z.literal('')),
-  country: z.string().min(2, "Country is required."),
+  country: z.string().min(2, "Country is required."), // Form collects full country name.
 });
 export type SignupDetailsFormValues = z.infer<typeof SignupDetailsFormSchema>;
 
@@ -65,7 +68,6 @@ export const LoginFormSchema = z.object({
 export type LoginFormValues = z.infer<typeof LoginFormSchema>;
 
 // Trading PIN Setup Schema
-// The form will handle individual digits, but the schema validates the combined PIN.
 export const PinSetupFormSchema = z.object({
   pin: z.string().length(4, "PIN must be 4 digits.").regex(/^\d{4}$/, "PIN must contain only digits."),
   confirmPin: z.string().length(4, "Confirm PIN must be 4 digits.").regex(/^\d{4}$/, "Confirm PIN must contain only digits."),

@@ -1,8 +1,15 @@
 
 // src/app/api/user/profile/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { query } from '@/lib/db'; // Ensure this is the only db import needed for querying
+// No Firebase Admin SDK for token verification in this reverted state.
+// This API route will trust the firebaseAuthUid passed in the query.
+// THIS IS NOT SECURE FOR PRODUCTION.
 import type { AppUser, UpdateProfilePayload } from '@/lib/types';
+
+// Log to confirm module loading (server-side)
+console.log('[API /user/profile/route.ts] SERVER DIAGNOSTIC: Module file is being loaded and evaluated by Next.js.');
+
 
 // GET request to fetch user profile
 export async function GET(request: NextRequest) {
@@ -21,7 +28,7 @@ export async function GET(request: NextRequest) {
       `SELECT 
          u.id, u.firebase_auth_uid, u.email, u.username, u.first_name, u.last_name, 
          u.phone_number, u.country, u.profile_completed_at, u.pin_setup_completed_at,
-         u.created_at, u.updated_at,
+         u.is_active, u.is_email_verified, u.created_at, u.updated_at,
          tp.name as account_type 
        FROM users u
        LEFT JOIN trading_plans tp ON u.trading_plan_id = tp.id
@@ -74,6 +81,8 @@ export async function PUT(request: NextRequest) {
     if (lastName !== undefined) { fieldsToUpdate.push(`last_name = $${queryIndex++}`); values.push(lastName); }
     if (username !== undefined) { fieldsToUpdate.push(`username = $${queryIndex++}`); values.push(username); }
     if (phoneNumber !== undefined) { fieldsToUpdate.push(`phone_number = $${queryIndex++}`); values.push(phoneNumber); }
+    // If using country_code CHAR(2), map 'country' to its code before update.
+    // For now, assuming users.country can store the full name.
     if (country !== undefined) { fieldsToUpdate.push(`country = $${queryIndex++}`); values.push(country); }
     
     if (fieldsToUpdate.length === 0) {
@@ -85,7 +94,7 @@ export async function PUT(request: NextRequest) {
 
     const updateQueryText = `UPDATE users SET ${fieldsToUpdate.join(', ')} WHERE firebase_auth_uid = $${queryIndex} RETURNING *`;
     
-    const result = await query<AppUser>(updateQueryText, values);
+    const result = await query(updateQueryText, values); // Query returns QueryResult, not AppUser directly
 
     if (result.rows.length === 0) {
       console.log(`[API /user/profile PUT] SERVER: User not found for update, firebaseAuthUid: ${firebaseAuthUid}`);
@@ -97,7 +106,7 @@ export async function PUT(request: NextRequest) {
       `SELECT 
          u.id, u.firebase_auth_uid, u.email, u.username, u.first_name, u.last_name, 
          u.phone_number, u.country, u.profile_completed_at, u.pin_setup_completed_at,
-         u.created_at, u.updated_at,
+         u.is_active, u.is_email_verified, u.created_at, u.updated_at,
          tp.name as account_type 
        FROM users u
        LEFT JOIN trading_plans tp ON u.trading_plan_id = tp.id
@@ -117,7 +126,10 @@ export async function PUT(request: NextRequest) {
   } catch (error: any) {
     if (error.code === '23505') { // Unique constraint violation
       console.error(`[API /user/profile PUT] SERVER: Unique constraint violation (e.g., username already exists) for ${firebaseAuthUid}:`, error.detail);
-      return NextResponse.json({ message: 'Update failed. Username or other unique field may already be taken.', detail: error.detail }, { status: 409 });
+      let field = 'unknown field';
+      if (error.constraint === 'users_username_key') field = 'Username';
+      // Add other unique constraint checks if needed
+      return NextResponse.json({ message: `${field} may already be taken.`, detail: error.detail }, { status: 409 });
     }
     console.error(`[API /user/profile PUT] SERVER: Error updating user profile for ${firebaseAuthUid}:`, error);
     return NextResponse.json({ message: 'Internal server error while updating profile' }, { status: 500 });
