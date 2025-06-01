@@ -30,7 +30,7 @@ export default function SignupDetailsForm() {
       firstName: '',
       lastName: '',
       username: '',
-      accountType: 'Personal', // Default or from appUser if available
+      accountType: tradingPlans[0]?.value || '', // Default to first plan or empty
       phoneNumber: '',
       country: '', // Will hold the 2-letter country code
     },
@@ -38,11 +38,11 @@ export default function SignupDetailsForm() {
   
   useEffect(() => {
     if (!authIsLoading && !firebaseUser) {
-      console.log('[SignupDetailsForm] No Firebase user found, redirecting to login.');
+      console.log('[SignupDetailsForm] CLIENT: No Firebase user found, redirecting to login.');
       router.push('/login');
     }
     if (!authIsLoading && appUser?.profile_completed_at) {
-      console.log('[SignupDetailsForm] Profile already complete, redirecting based on PIN status.');
+      console.log('[SignupDetailsForm] CLIENT: Profile already complete, redirecting based on PIN status.');
       if (!appUser.pin_setup_completed_at) {
         router.push('/setup-pin');
       } else {
@@ -51,14 +51,21 @@ export default function SignupDetailsForm() {
     }
     // Pre-fill form if appUser data becomes available (e.g., on page refresh if partially completed)
     if (appUser) {
-      form.reset({
-        firstName: appUser.first_name || '',
-        lastName: appUser.last_name || '',
-        username: appUser.username || '',
-        accountType: appUser.account_type || 'Personal', // Ensure this maps to a valid plan value
-        phoneNumber: appUser.phone_number || '',
-        country: appUser.country_code || '', // Use country_code here
-      });
+        console.log('[SignupDetailsForm] CLIENT: appUser data available, resetting form with:', appUser);
+        form.reset({
+            firstName: appUser.first_name || '',
+            lastName: appUser.last_name || '',
+            username: appUser.username || '',
+            accountType: appUser.account_type || tradingPlans[0]?.value || '',
+            phoneNumber: appUser.phone_number || '',
+            country: appUser.country_code || '', 
+        });
+    } else if (firebaseUser && !appUser) {
+        // If firebaseUser exists but appUser is null (fresh signup path, before profile is created)
+        // Ensure default accountType is set if not already.
+        if (!form.getValues('accountType') && tradingPlans.length > 0) {
+            form.setValue('accountType', tradingPlans[0].value);
+        }
     }
   }, [firebaseUser, appUser, authIsLoading, router, form]);
 
@@ -72,27 +79,24 @@ export default function SignupDetailsForm() {
     }
     setIsLoading(true);
 
-    // The RegisterUserRequestSchema's transform will handle renaming 'country' to 'country_code' if needed,
-    // but since 'country' field in form values already holds the code, it's fine.
-    const payload: Omit<RegisterUserPayload, 'country_code'> & { country: string } = { 
-      ...values, // `country` here is the 2-letter code from the form
+    const payload: RegisterUserPayload = { 
+      ...values,
       email: firebaseUser.email,
       firebaseAuthUid: firebaseUser.uid,
+      country_code: values.country, // The Zod schema transform handles this, but explicit for clarity
     };
-    console.log('[SignupDetailsForm] CLIENT: Payload for API:', payload);
-
+    console.log('[SignupDetailsForm] CLIENT: Payload for API (/api/auth/register-user):', payload);
 
     try {
       const response = await fetch('/api/auth/register-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload), // Send values as is, API schema will parse
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
       console.log('[SignupDetailsForm] CLIENT: API response status:', response.status);
       console.log('[SignupDetailsForm] CLIENT: API response body:', result);
-
 
       if (response.ok) {
         toast({
@@ -101,18 +105,19 @@ export default function SignupDetailsForm() {
         });
         updateAppUser(result as AppUser); // AuthContext will handle redirect to /setup-pin
       } else {
+        const errorDetail = result.errors || result.detail || JSON.stringify(result);
         toast({
           title: 'Update Failed',
-          description: result.message || 'Could not update profile.',
+          description: `${result.message || 'Could not update profile.'} ${response.status === 409 ? '(Username or Email might be taken)' : ''}`,
           variant: 'destructive',
         });
-         console.error('[SignupDetailsForm] CLIENT: Update failed, API errors:', result.errors || result.detail);
+         console.error('[SignupDetailsForm] CLIENT: Update failed, API error details:', errorDetail);
       }
     } catch (error) {
       console.error("[SignupDetailsForm] CLIENT: Error submitting signup details:", error);
       toast({
         title: 'Error',
-        description: 'An unexpected error occurred.',
+        description: 'An unexpected error occurred during profile update.',
         variant: 'destructive',
       });
     } finally {
@@ -120,7 +125,7 @@ export default function SignupDetailsForm() {
     }
   }
   
-  if (authIsLoading || !firebaseUser) { // Basic loading check
+  if (authIsLoading || (!firebaseUser && !appUser)) { 
     return <div className="text-center p-8"><Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" /> <p className="mt-2">Loading user data...</p></div>;
   }
 
@@ -133,30 +138,37 @@ export default function SignupDetailsForm() {
           name="accountType"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel>Account Type *</FormLabel>
+              <FormLabel className="text-base font-semibold">Select Your Account Type *</FormLabel>
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
                   defaultValue={field.value}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                  value={field.value} // Ensure value is controlled
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-4"
                 >
                   {tradingPlans.map((plan: TradingPlan) => (
                     <FormItem 
                       key={plan.value} 
-                      className="flex flex-col items-start space-y-1 border p-4 rounded-md hover:bg-muted/50 transition-colors data-[state=checked]:border-primary data-[state=checked]:bg-primary/5"
+                      className="flex flex-col items-start space-y-1.5 border p-4 rounded-lg hover:border-primary/70 transition-colors data-[state=checked]:border-primary data-[state=checked]:bg-primary/5 data-[state=checked]:ring-2 data-[state=checked]:ring-primary/50"
                       data-state={field.value === plan.value ? "checked" : "unchecked"}
+                      onClick={() => field.onChange(plan.value)} // Allow clicking the whole item
                     >
-                      <div className="flex items-center w-full">
+                      <div className="flex items-center w-full cursor-pointer">
                         <FormControl>
-                          <RadioGroupItem value={plan.value} id={`account-type-${plan.value}`} />
+                          <RadioGroupItem value={plan.value} id={`account-type-${plan.value}`} className="cursor-pointer"/>
                         </FormControl>
-                        <FormLabel htmlFor={`account-type-${plan.value}`} className="font-medium ml-2 cursor-pointer flex-1">
+                        <FormLabel htmlFor={`account-type-${plan.value}`} className="font-semibold text-sm ml-3 cursor-pointer flex-1">
                           {plan.label}
                         </FormLabel>
                       </div>
-                      <FormDescription className="text-xs text-muted-foreground pl-6">
-                        Min. Deposit: ${plan.minimumDeposit.toLocaleString()}
-                      </FormDescription>
+                      <div className="pl-7 text-xs space-y-1 w-full">
+                        <p className="text-muted-foreground">
+                          Min. Deposit: <span className="font-medium text-foreground/90">${plan.minimumDeposit.toLocaleString()}</span>
+                        </p>
+                        <p className="text-muted-foreground leading-snug">
+                          {plan.description}
+                        </p>
+                      </div>
                     </FormItem>
                   ))}
                 </RadioGroup>
@@ -229,11 +241,11 @@ export default function SignupDetailsForm() {
           name="country"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Country * (Select your 2-letter code)</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormLabel>Country *</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select your country code" />
+                    <SelectValue placeholder="Select your country" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -242,7 +254,7 @@ export default function SignupDetailsForm() {
                   ))}
                 </SelectContent>
               </Select>
-              <FormDescription>This will be stored as your country code.</FormDescription>
+              <FormDescription>Select your country of residence.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
