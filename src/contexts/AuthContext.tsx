@@ -3,9 +3,9 @@
 
 import type React from 'react';
 import { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'; // Added useSearchParams
 import { type User as FirebaseUser, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth as firebaseAuthClient } from '@/lib/firebase'; // Renamed to avoid conflict
+import { auth as firebaseAuthClient } from '@/lib/firebase';
 import type { AppUser } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 
@@ -13,8 +13,8 @@ interface AuthContextType {
   firebaseUser: FirebaseUser | null;
   appUser: AppUser | null;
   isLoading: boolean;
-  handleFirebaseEmailPasswordSignup: typeof createUserWithEmailAndPassword;
-  handleFirebaseEmailPasswordLogin: typeof signInWithEmailAndPassword;
+  handleFirebaseEmailPasswordSignup: (email: string, pass: string) => Promise<FirebaseUser>;
+  handleFirebaseEmailPasswordLogin: (email: string, pass: string) => Promise<FirebaseUser>;
   handleGoogleSignIn: () => Promise<void>;
   logout: () => Promise<void>;
   updateAppUser: (updatedProfileData: AppUser | null) => void;
@@ -22,10 +22,10 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const publicPages = ['/login', '/signup', '/forgot-password', '/privacy-policy', '/terms-of-service', '/'];
-// Add other public marketing pages like /about, /markets, /pricing, /contact etc.
-const marketingPages = ['/about', '/markets', '/pricing', '/contact', '/copy-trading', '/partners', '/quick-start', '/resources', '/trading', '/trading-platforms'];
-const allPublicPages = [...publicPages, ...marketingPages];
+const publicPages = ['/', '/login', '/signup', '/forgot-password', '/privacy-policy', '/terms-of-service'];
+const marketingPages = ['/about', '/markets', '/pricing', '/contact', '/copy-trading', '/partners', '/quick-start', '/resources', '/trading', '/trading-platforms', '/more'];
+const specialOnboardingPages = ['/signup-details', '/setup-pin'];
+const allPublicAndOnboardingPages = [...publicPages, ...marketingPages, ...specialOnboardingPages];
 
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -34,14 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
-  const [routerReady, setRouterReady] = useState(false);
-
-  useEffect(() => {
-    if (router) { // Check if router is available
-        setRouterReady(true);
-    }
-  }, [router]);
-
+  const searchParams = useSearchParams(); // For redirect after login
 
   const fetchUserProfile = useCallback(async (uid: string): Promise<AppUser | null> => {
     console.log(`[AuthContext] CLIENT: Fetching profile for UID: ${uid}`);
@@ -53,10 +46,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return profileData as AppUser;
       }
       if (response.status === 404) {
-        console.log('[AuthContext] CLIENT: Profile not found (404) for UID:', uid, '- This is expected for a new user or if API route is down.');
+        console.log('[AuthContext] CLIENT: Profile not found (404) for UID:', uid);
         return null;
       }
-      console.error(`[AuthContext] CLIENT: Error fetching profile. Status: ${response.status}. Response:`, await response.text().catch(() => 'Could not read error response body'));
+      const responseText = await response.text().catch(() => 'Could not read error response body');
+      console.error(`[AuthContext] CLIENT: Error fetching profile. Status: ${response.status}. Response: ${responseText.substring(0, 500)}`);
       return null;
     } catch (error) {
       console.error('[AuthContext] CLIENT: Network or other error fetching profile:', error);
@@ -64,80 +58,93 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const updateAppUser = (updatedProfileData: AppUser | null) => {
-    console.log('[AuthContext] CLIENT: updateAppUser called with:', updatedProfileData);
-    setAppUser(updatedProfileData);
-    // The main useEffect will react to this appUser change and handle redirection.
-  };
-
+  const ensureRedirect = useCallback((targetPath: string) => {
+    if (pathname !== targetPath) {
+      console.log(`[AuthContext] CLIENT: Redirecting from ${pathname} to ${targetPath}`);
+      router.push(targetPath);
+    } else {
+      console.log(`[AuthContext] CLIENT: Already on target path ${targetPath}, no redirect needed.`);
+    }
+  }, [pathname, router]);
+  
 
   useEffect(() => {
-    if (!routerReady) {
-      console.log('[AuthContext] CLIENT: Router not ready, skipping auth state listener setup.');
-      return;
-    }
     console.log('[AuthContext] CLIENT: Setting up Firebase onAuthStateChanged listener.');
     setIsLoading(true);
 
     const unsubscribe = onAuthStateChanged(firebaseAuthClient, async (fbUser) => {
-      console.log('[AuthContext] CLIENT: onAuthStateChanged triggered. Firebase user:', fbUser ? fbUser.uid : 'null');
+      console.log('[AuthContext] CLIENT: onAuthStateChanged triggered. Firebase user UID:', fbUser ? fbUser.uid : 'null');
       setFirebaseUser(fbUser);
 
       if (fbUser) {
         const profile = await fetchUserProfile(fbUser.uid);
-        setAppUser(profile);
+        setAppUser(profile); // Update appUser state immediately
 
         if (profile) {
+          console.log('[AuthContext] CLIENT: AppUser profile found:', profile);
           if (!profile.profile_completed_at) {
-            console.log('[AuthContext] CLIENT: Profile not complete, redirecting to /signup-details.');
-            if (pathname !== '/signup-details') router.push('/signup-details');
+            console.log('[AuthContext] CLIENT: Profile not complete, ensuring redirect to /signup-details.');
+            ensureRedirect('/signup-details');
           } else if (!profile.pin_setup_completed_at) {
-            console.log('[AuthContext] CLIENT: PIN not set up, redirecting to /setup-pin.');
-            if (pathname !== '/setup-pin') router.push('/setup-pin');
+            console.log('[AuthContext] CLIENT: PIN not set up, ensuring redirect to /setup-pin.');
+            ensureRedirect('/setup-pin');
           } else {
-            console.log('[AuthContext] CLIENT: User fully set up. Current path:', pathname);
-             if (!pathname.startsWith('/dashboard')) {
-                 console.log('[AuthContext] CLIENT: Redirecting to /dashboard.');
-                 router.push('/dashboard');
-             }
+            console.log('[AuthContext] CLIENT: User fully set up.');
+            const redirectUrl = searchParams.get('redirectUrl') || '/dashboard';
+            if (!pathname.startsWith('/dashboard') && pathname !== redirectUrl.split('?')[0]) { // Avoid redirect if already on dashboard or target
+                 ensureRedirect(redirectUrl);
+            }
           }
         } else {
-          // Profile not found in DB (e.g. new Firebase user, or API error)
-          console.log('[AuthContext] CLIENT: App profile not found after Firebase auth, redirecting to /signup-details.');
-           if (pathname !== '/signup-details') router.push('/signup-details');
+          // This is the critical path for a NEW Firebase user or if profile fetch failed for an existing user
+          console.log('[AuthContext] CLIENT: AppUser profile NOT found for Firebase UID:', fbUser.uid, '(New user or API error). Ensuring redirect to /signup-details.');
+          ensureRedirect('/signup-details');
         }
       } else {
         // No Firebase user
         setAppUser(null);
-        if (!allPublicPages.includes(pathname) && !pathname.startsWith('/dashboard/_')) { // Allow internal Next.js routes
-          console.log('[AuthContext] CLIENT: No Firebase user, not on public page. Current path:', pathname, 'Redirecting to /login.');
-          if (pathname !== '/login') router.push('/login');
+        if (!allPublicAndOnboardingPages.includes(pathname) && !pathname.startsWith('/_next/')) {
+          console.log('[AuthContext] CLIENT: No Firebase user, not on public/onboarding page. Current path:', pathname, 'Ensuring redirect to /login.');
+          ensureRedirect('/login');
         } else {
-            console.log('[AuthContext] CLIENT: No Firebase user, already on a public page or no redirect needed. Path:', pathname);
+           console.log('[AuthContext] CLIENT: No Firebase user, already on a public/onboarding page or no redirect needed. Path:', pathname);
         }
       }
       setIsLoading(false);
-      console.log('[AuthContext] CLIENT: Finished processing auth state change. isLoading:', false);
+      console.log('[AuthContext] CLIENT: Finished processing auth state change. isLoading is now false.');
     });
 
     return () => {
       console.log('[AuthContext] CLIENT: Cleaning up Firebase onAuthStateChanged listener.');
       unsubscribe();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [routerReady, fetchUserProfile]); // Removed router and pathname to reduce re-runs; redirect logic inside handles current path.
+  }, [fetchUserProfile, ensureRedirect, pathname, searchParams]); // Added searchParams
+
+  const updateAppUser = useCallback((updatedProfileData: AppUser | null) => {
+    console.log('[AuthContext] CLIENT: updateAppUser called with:', updatedProfileData);
+    setAppUser(updatedProfileData);
+    // After updating, the main useEffect will re-evaluate and redirect if necessary
+    // For example, if profile_completed_at is now set, it should redirect from /signup-details to /setup-pin
+    if (updatedProfileData?.profile_completed_at && !updatedProfileData?.pin_setup_completed_at) {
+        ensureRedirect('/setup-pin');
+    } else if (updatedProfileData?.profile_completed_at && updatedProfileData?.pin_setup_completed_at) {
+        const redirectUrl = searchParams.get('redirectUrl') || '/dashboard';
+        ensureRedirect(redirectUrl);
+    }
+  }, [ensureRedirect, searchParams]);
+
 
   const handleFirebaseEmailPasswordSignup = async (email: string, pass: string) => {
     setIsLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(firebaseAuthClient, email, pass);
-      // onAuthStateChanged will handle the new user
       console.log('[AuthContext] CLIENT: Firebase email signup successful for:', userCredential.user.email);
-      return userCredential;
+      // onAuthStateChanged will handle setting firebaseUser, fetching profile (which will be null), and redirecting to /signup-details
+      return userCredential.user;
     } catch (error: any) {
       console.error('[AuthContext] CLIENT: Firebase email signup error:', error.code, error.message);
       setIsLoading(false);
-      throw error; // Re-throw for the form to handle
+      throw error;
     }
   };
 
@@ -145,13 +152,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(firebaseAuthClient, email, pass);
-      // onAuthStateChanged will handle the logged-in user
       console.log('[AuthContext] CLIENT: Firebase email login successful for:', userCredential.user.email);
-      return userCredential;
+      // onAuthStateChanged will handle this
+      return userCredential.user;
     } catch (error: any) {
-      console.error('[AuthContext] CLIENT: Firebase email login error:', error.code, error.message);
+      console.error('[AuthContext] CLIENT: Firebase email login error:', error.code, error.message, error);
       setIsLoading(false);
-      throw error; // Re-throw for the form to handle
+      throw error;
     }
   };
   
@@ -160,12 +167,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(firebaseAuthClient, provider);
-      // onAuthStateChanged will handle the new/logged-in user
       console.log('[AuthContext] CLIENT: Google sign-in successful for:', result.user.email);
+      // onAuthStateChanged will handle this
     } catch (error: any) {
       console.error('[AuthContext] CLIENT: Google sign-in error:', error.code, error.message);
       setIsLoading(false);
-      // Potentially show a toast message for Google sign-in errors
+      throw error;
     }
   };
 
@@ -174,29 +181,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       await signOut(firebaseAuthClient);
-      // onAuthStateChanged will set firebaseUser and appUser to null and redirect.
-      console.log('[AuthContext] CLIENT: Firebase signOut successful.');
+      setFirebaseUser(null); // Explicitly clear firebaseUser
+      setAppUser(null);    // Explicitly clear appUser
+      console.log('[AuthContext] CLIENT: Firebase signOut successful. Redirecting to /login.');
+      ensureRedirect('/login'); // Ensure redirect after state clear
     } catch (error) {
       console.error('[AuthContext] CLIENT: Error during Firebase signOut:', error);
-      // Still attempt to clear local state
-      setFirebaseUser(null);
-      setAppUser(null);
-      setIsLoading(false);
-      if (pathname !== '/login') router.push('/login');
+    } finally {
+        setIsLoading(false);
     }
   };
   
-  if (isLoading && !firebaseUser && !allPublicPages.includes(pathname)) {
-    // Show a global loading spinner if still loading and not on a public page.
-    // This aims to prevent premature rendering of protected content or login page.
+  if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="ml-4 text-muted-foreground">Initializing authentication...</p>
+        <p className="ml-4 text-muted-foreground">Initializing session...</p>
       </div>
     );
   }
-
 
   return (
     <AuthContext.Provider value={{ firebaseUser, appUser, isLoading, handleFirebaseEmailPasswordSignup, handleFirebaseEmailPasswordLogin, handleGoogleSignIn, logout, updateAppUser }}>

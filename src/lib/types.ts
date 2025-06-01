@@ -22,13 +22,13 @@ export interface AppUser {
   first_name: string | null;
   last_name: string | null;
   account_type: AccountType | null; // This is the plan NAME like 'Beginner', 'Pro', derived from trading_plans.name
-  trading_plan_id?: number | null; // Added for clarity, though account_type (name) is primarily used in frontend
+  trading_plan_id?: number | null;
   phone_number: string | null;
-  country: string | null; // The form collects full country name. Schema has country_code CHAR(2). API needs to handle this if schema is strict.
+  country_code: string | null; // Changed from 'country' to 'country_code'
   profile_completed_at: string | null; // ISO date string
   pin_setup_completed_at: string | null; // ISO date string
-  is_active?: boolean; // Added from user's schema
-  is_email_verified?: boolean; // Added from user's schema
+  is_active?: boolean;
+  is_email_verified?: boolean;
   created_at: string; // ISO date string
   updated_at: string; // ISO date string
 }
@@ -50,12 +50,12 @@ export type SignupFormValues = z.infer<typeof SignupFormSchema>;
 
 // Signup Details Form Schema (after Firebase signup, for PG profile)
 export const SignupDetailsFormSchema = z.object({
-  firstName: z.string().min(2, "First name must be at least 2 characters."),
-  lastName: z.string().min(2, "Last name must be at least 2 characters."),
-  username: z.string().min(3, "Username must be at least 3 characters.").regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores."),
+  firstName: z.string().min(2, "First name must be at least 2 characters.").max(100),
+  lastName: z.string().min(2, "Last name must be at least 2 characters.").max(100),
+  username: z.string().min(3, "Username must be at least 3 characters.").max(100).regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores."),
   accountType: z.enum(accountTypeValues, { required_error: "Account type is required." }),
-  phoneNumber: z.string().min(7, "Phone number seems too short.").optional().or(z.literal('')),
-  country: z.string().min(2, "Country is required."), // Form collects full country name.
+  phoneNumber: z.string().min(7, "Phone number seems too short.").max(50).optional().or(z.literal('')),
+  country: z.string().length(2, "Country selection is required."), // Expects 2-letter country code
 });
 export type SignupDetailsFormValues = z.infer<typeof SignupDetailsFormSchema>;
 
@@ -85,15 +85,19 @@ export const UpdateProfileRequestSchema = z.object({
   lastName: z.string().optional(),
   username: z.string().optional(),
   phoneNumber: z.string().optional(),
-  country: z.string().optional(),
+  country_code: z.string().length(2).optional(), // Changed from country to country_code
   // accountType might be updatable through a different flow or not at all by user directly
 });
 export type UpdateProfilePayload = z.infer<typeof UpdateProfileRequestSchema>;
 
+// For /api/auth/register-user, the payload comes from SignupDetailsFormValues
 export const RegisterUserRequestSchema = SignupDetailsFormSchema.extend({
   email: z.string().email(), // Email comes from Firebase user
   firebaseAuthUid: z.string(),
-});
+}).transform(data => ({ // Transform 'country' to 'country_code'
+    ...data,
+    country_code: data.country, // The 'country' field from form IS the code
+  }));
 export type RegisterUserPayload = z.infer<typeof RegisterUserRequestSchema>;
 
 export const SetupPinRequestSchema = z.object({

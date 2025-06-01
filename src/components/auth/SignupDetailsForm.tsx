@@ -27,12 +27,12 @@ export default function SignupDetailsForm() {
   const form = useForm<SignupDetailsFormValues>({
     resolver: zodResolver(SignupDetailsFormSchema),
     defaultValues: {
-      firstName: appUser?.first_name || '',
-      lastName: appUser?.last_name || '',
-      username: appUser?.username || '',
-      accountType: appUser?.account_type || 'Personal',
-      phoneNumber: appUser?.phone_number || '',
-      country: appUser?.country || '',
+      firstName: '',
+      lastName: '',
+      username: '',
+      accountType: 'Personal', // Default or from appUser if available
+      phoneNumber: '',
+      country: '', // Will hold the 2-letter country code
     },
   });
   
@@ -41,21 +41,30 @@ export default function SignupDetailsForm() {
       console.log('[SignupDetailsForm] No Firebase user found, redirecting to login.');
       router.push('/login');
     }
-     // Pre-fill form if appUser data becomes available after initial load
+    if (!authIsLoading && appUser?.profile_completed_at) {
+      console.log('[SignupDetailsForm] Profile already complete, redirecting based on PIN status.');
+      if (!appUser.pin_setup_completed_at) {
+        router.push('/setup-pin');
+      } else {
+        router.push('/dashboard');
+      }
+    }
+    // Pre-fill form if appUser data becomes available (e.g., on page refresh if partially completed)
     if (appUser) {
       form.reset({
         firstName: appUser.first_name || '',
         lastName: appUser.last_name || '',
         username: appUser.username || '',
-        accountType: appUser.account_type || 'Personal',
+        accountType: appUser.account_type || 'Personal', // Ensure this maps to a valid plan value
         phoneNumber: appUser.phone_number || '',
-        country: appUser.country || '',
+        country: appUser.country_code || '', // Use country_code here
       });
     }
   }, [firebaseUser, appUser, authIsLoading, router, form]);
 
 
   async function onSubmit(values: SignupDetailsFormValues) {
+    console.log('[SignupDetailsForm] CLIENT: Form submitted with values:', values);
     if (!firebaseUser || !firebaseUser.email) {
       toast({ title: 'Error', description: 'User session not found. Please try logging in again.', variant: 'destructive' });
       setIsLoading(false);
@@ -63,20 +72,27 @@ export default function SignupDetailsForm() {
     }
     setIsLoading(true);
 
-    const payload: RegisterUserPayload = {
-      ...values,
+    // The RegisterUserRequestSchema's transform will handle renaming 'country' to 'country_code' if needed,
+    // but since 'country' field in form values already holds the code, it's fine.
+    const payload: Omit<RegisterUserPayload, 'country_code'> & { country: string } = { 
+      ...values, // `country` here is the 2-letter code from the form
       email: firebaseUser.email,
       firebaseAuthUid: firebaseUser.uid,
     };
+    console.log('[SignupDetailsForm] CLIENT: Payload for API:', payload);
+
 
     try {
       const response = await fetch('/api/auth/register-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload), // Send values as is, API schema will parse
       });
 
       const result = await response.json();
+      console.log('[SignupDetailsForm] CLIENT: API response status:', response.status);
+      console.log('[SignupDetailsForm] CLIENT: API response body:', result);
+
 
       if (response.ok) {
         toast({
@@ -90,9 +106,10 @@ export default function SignupDetailsForm() {
           description: result.message || 'Could not update profile.',
           variant: 'destructive',
         });
+         console.error('[SignupDetailsForm] CLIENT: Update failed, API errors:', result.errors || result.detail);
       }
     } catch (error) {
-      console.error("Error submitting signup details:", error);
+      console.error("[SignupDetailsForm] CLIENT: Error submitting signup details:", error);
       toast({
         title: 'Error',
         description: 'An unexpected error occurred.',
@@ -103,7 +120,7 @@ export default function SignupDetailsForm() {
     }
   }
   
-  if (authIsLoading || !firebaseUser) {
+  if (authIsLoading || !firebaseUser) { // Basic loading check
     return <div className="text-center p-8"><Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" /> <p className="mt-2">Loading user data...</p></div>;
   }
 
@@ -212,19 +229,20 @@ export default function SignupDetailsForm() {
           name="country"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Country *</FormLabel>
+              <FormLabel>Country * (Select your 2-letter code)</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select your country" />
+                    <SelectValue placeholder="Select your country code" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   {countries.map(country => (
-                    <SelectItem key={country.value} value={country.value}>{country.label}</SelectItem>
+                    <SelectItem key={country.value} value={country.value}>{country.label} ({country.value})</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <FormDescription>This will be stored as your country code.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
