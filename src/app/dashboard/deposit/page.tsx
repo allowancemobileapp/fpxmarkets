@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DollarSign, Bitcoin, Briefcase, HelpCircle, QrCode, Copy } from 'lucide-react'; 
+import { DollarSign, Bitcoin, Briefcase, HelpCircle, QrCode, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Image from 'next/image';
@@ -20,10 +20,10 @@ import { getTradingPlan, type TradingPlan } from '@/config/tradingPlans';
 import type { AccountType } from '@/lib/types';
 
 const cryptocurrencies = [
-  { value: 'BTC', label: 'Bitcoin', icon: <Bitcoin className="h-5 w-5" />, address: 'bc1q...', qr: 'https://placehold.co/150x150.png?text=BTC+QR', dataAiHint: "QR code Bitcoin" },
-  { value: 'ETH', label: 'Ethereum', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 417" preserveAspectRatio="xMidYMid"><path fill="#343434" d="m127.961 0l-2.795 9.5v275.668l2.795 2.79l127.962-75.638z"/><path fill="#8C8C8C" d="M127.962 0L0 212.32l127.962 75.638V157.885z"/><path fill="#3C3C3B" d="m127.961 312.187l-1.575 1.92v98.199l1.575 4.6l127.963-177.959z"/><path fill="#8C8C8C" d="m127.962 416.905v-104.72L0 239.625z"/><path fill="#141414" d="m127.961 287.958l127.96-75.637l-127.96-58.162z"/><path fill="#393939" d="m.001 212.321l127.96 75.637V154.159z"/></svg>, address: '0x123...', qr: 'https://placehold.co/150x150.png?text=ETH+QR', dataAiHint: "QR code Ethereum" },
-  { value: 'USDT', label: 'USDT (TRC20)', icon: <DollarSign className="h-5 w-5" />, address: 'TXYZ...', qr: 'https://placehold.co/150x150.png?text=USDT+QR', dataAiHint: "QR code USDT" },
-  { value: 'SOL', label: 'Solana', icon: <Briefcase className="h-5 w-5" />, address: 'Sol1A...', qr: 'https://placehold.co/150x150.png?text=SOL+QR', dataAiHint: "QR code Solana"  },
+  { value: 'BTC', label: 'Bitcoin', icon: <Bitcoin className="h-5 w-5" />, address: '1BU9ypkPQFNq2KYGhBQWArWASGrpR6SWSm', qr: 'https://placehold.co/150x150.png?text=BTC+QR', dataAiHint: "QR code Bitcoin" },
+  { value: 'ETH', label: 'Ethereum', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 417" preserveAspectRatio="xMidYMid"><path fill="#343434" d="m127.961 0l-2.795 9.5v275.668l2.795 2.79l127.962-75.638z"/><path fill="#8C8C8C" d="M127.962 0L0 212.32l127.962 75.638V157.885z"/><path fill="#3C3C3B" d="m127.961 312.187l-1.575 1.92v98.199l1.575 4.6l127.963-177.959z"/><path fill="#8C8C8C" d="m127.962 416.905v-104.72L0 239.625z"/><path fill="#141414" d="m127.961 287.958l127.96-75.637l-127.96-58.162z"/><path fill="#393939" d="m.001 212.321l127.96 75.637V154.159z"/></svg>, address: '0x5B8c8A178e72906f2E8F27d653B89045B1A6Ff00', qr: 'https://placehold.co/150x150.png?text=ETH+QR', dataAiHint: "QR code Ethereum" },
+  { value: 'USDT', label: 'USDT (TRC20)', icon: <DollarSign className="h-5 w-5" />, address: 'TR3VUseo8xtTNVkb79j785WgFWhR9pNR9j', qr: 'https://placehold.co/150x150.png?text=USDT+QR', dataAiHint: "QR code USDT" },
+  { value: 'SOL', label: 'Solana', icon: <Briefcase className="h-5 w-5" />, address: '7H98KJSGKoe52pW4kn8u5SWXYEmA4VsTh1FyHvFyVYCA', qr: 'https://placehold.co/150x150.png?text=SOL+QR', dataAiHint: "QR code Solana"  },
 ];
 
 const depositFormSchemaBase = z.object({
@@ -209,3 +209,4 @@ export default function DepositPage() {
   );
 }
 import { FormItem } from '@/components/ui/form';
+
