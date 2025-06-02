@@ -5,9 +5,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-// FormLabel is imported from '@/components/ui/form' below
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { UserCircle, Edit3, KeyRound, ImageIcon, ShieldCheck, Loader2, Save, Info, Mail } from 'lucide-react';
+import { UserCircle, Edit3, KeyRound, ImageIcon, Loader2, Save, Info, Mail } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,7 +18,9 @@ import { countries } from '@/config/countries';
 import { auth as firebaseAuthClient } from '@/lib/firebase'; 
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Label } from '@/components/ui/label'; // For display-only labels
+import { Label } from '@/components/ui/label';
+import { tradingPlans, type TradingPlan, type AccountType } from '@/config/tradingPlans';
+
 
 export default function DashboardProfilePageContent() {
   const { appUser, isLoading: authIsLoading, updateAppUser } = useAuth();
@@ -56,7 +57,7 @@ export default function DashboardProfilePageContent() {
 
   const handleEditProfileClick = () => {
     console.log('[ProfilePageContent] Edit Profile button clicked.');
-    form.reset(defaultValues); // Ensure form has latest defaults before editing
+    form.reset(defaultValues); 
     setIsEditing(true);
   };
 
@@ -187,8 +188,8 @@ export default function DashboardProfilePageContent() {
                     />
                     <AvatarFallback>{getInitials(appUser.username)}</AvatarFallback>
                   </Avatar>
-                  <Button type="button" variant="outline" size="sm" onClick={() => handleFeatureComingSoon('Change Profile Picture')}>
-                    <ImageIcon className="mr-2 h-4 w-4" /> Change Profile Picture
+                  <Button type="button" variant="outline" size="sm" onClick={() => handleFeatureComingSoon('Change Profile Picture')} disabled>
+                    <ImageIcon className="mr-2 h-4 w-4" /> Change Profile Picture (Coming Soon)
                   </Button>
                 </div>
                 <Separator />
@@ -234,7 +235,7 @@ export default function DashboardProfilePageContent() {
                   />
                   {/* Email display (read-only) */}
                   <FormItem>
-                    <Label htmlFor="email_display">Email</Label> {/* Using simple Label for display */}
+                    <Label htmlFor="email_display">Email</Label>
                     <Input id="email_display" type="email" value={appUser.email} readOnly className="mt-1 bg-muted/50" />
                      <div className="flex items-center text-xs text-muted-foreground pt-1">
                         <Info className="h-3 w-3 mr-1.5" /> Email cannot be changed here.
@@ -280,10 +281,33 @@ export default function DashboardProfilePageContent() {
                       </FormItem>
                     )}
                   />
-                   {/* Account Type display (read-only) */}
+                   {/* Account Type display (read-only or disabled select) */}
                   <FormItem>
                     <Label htmlFor="accountType_display">Account Type</Label>
-                    <Input id="accountType_display" value={appUser.account_type || 'N/A'} readOnly className="mt-1 bg-muted/50" />
+                    {isEditing ? (
+                      <Select
+                        value={appUser.account_type || undefined}
+                        disabled // Account type change is a separate process
+                      >
+                        <FormControl>
+                          <SelectTrigger className="mt-1 bg-muted/50 cursor-not-allowed">
+                            <SelectValue placeholder="Account type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {tradingPlans.map((plan: TradingPlan) => (
+                            <SelectItem key={plan.value} value={plan.value} disabled>
+                              {plan.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input id="accountType_display" value={appUser.account_type || 'N/A'} readOnly className="mt-1 bg-muted/50" />
+                    )}
+                     <div className="flex items-center text-xs text-muted-foreground pt-1">
+                        <Info className="h-3 w-3 mr-1.5" /> Account type changes require a separate process.
+                    </div>
                   </FormItem>
                   {/* Profile Completed At display (read-only) */}
                   <FormItem>
@@ -327,15 +351,14 @@ export default function DashboardProfilePageContent() {
             <Button type="button" variant="outline" className="w-full justify-start" onClick={handleChangePassword}>
               <Mail className="mr-2 h-4 w-4" /> Send Password Reset Email
             </Button>
-            <Button type="button" variant="outline" className="w-full justify-start" onClick={() => handleFeatureComingSoon('Change Trading PIN')}>
-              <KeyRound className="mr-2 h-4 w-4" /> Change Trading PIN
+            <Button type="button" variant="outline" className="w-full justify-start" onClick={() => handleFeatureComingSoon('Change Trading PIN')} disabled>
+              <KeyRound className="mr-2 h-4 w-4" /> Change Trading PIN (Coming Soon)
             </Button>
-            <Button type="button" variant="outline" className="w-full justify-start" onClick={() => handleFeatureComingSoon('Two-Factor Authentication')}>
-              <ShieldCheck className="mr-2 h-4 w-4" /> Enable Two-Factor Auth
-            </Button>
+            {/* Removed 2FA Button */}
           </CardContent>
         </Card>
       </div>
     </div>
   );
 }
+
