@@ -5,21 +5,22 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { DollarSign, TrendingUp, AlertTriangle, CheckCircle, Clock, Copy, Users, BarChartBig, UserCircle, Loader2 } from 'lucide-react'; // Added UserCircle, Loader2
+import { DollarSign, TrendingUp, AlertTriangle, CheckCircle, Clock, Copy, Users, BarChartBig, UserCircle, Loader2 } from 'lucide-react';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
-// Mock data for dashboard
-const mockDashboardData = {
-  totalAssets: 12345.67,
-  totalDeposited: 10000.00,
-  totalProfitLoss: 2345.67,
-  pendingDeposits: 500.00,
-  copiedTraders: [
-    { id: '1', username: 'CryptoKing', avatarSeed: 'CK', market: 'Cryptocurrencies', profitLoss: 150.25 },
-    { id: '2', username: 'ForexMaster', avatarSeed: 'FM', market: 'Forex', profitLoss: -50.75 },
-    { id: '3', username: 'StockWizard', avatarSeed: 'SW', market: 'Stocks', profitLoss: 300.00 },
-  ],
-};
+interface DashboardData {
+  totalAssets: number;
+  totalDeposited: number;
+  totalProfitLoss: number;
+  pendingDeposits: number;
+}
+
+const mockCopiedTraders = [
+  { id: '1', username: 'CryptoKing', avatarSeed: 'CK', market: 'Cryptocurrencies', profitLoss: 150.25 },
+  { id: '2', username: 'ForexMaster', avatarSeed: 'FM', market: 'Forex', profitLoss: -50.75 },
+  { id: '3', username: 'StockWizard', avatarSeed: 'SW', market: 'Stocks', profitLoss: 300.00 },
+];
 
 const StatCard = ({ title, value, icon: Icon, unit = '$', color = 'text-primary', description, trend }: {
   title: string;
@@ -45,7 +46,6 @@ const StatCard = ({ title, value, icon: Icon, unit = '$', color = 'text-primary'
        <CardFooter className="text-xs text-muted-foreground">
         {trend === 'up' && <TrendingUp className="h-4 w-4 mr-1 text-positive" />}
         {trend === 'down' && <TrendingUp className="h-4 w-4 mr-1 text-destructive transform rotate-180" />}
-        {/* You can add more detailed trend descriptions here */}
       </CardFooter>
     )}
   </Card>
@@ -53,38 +53,81 @@ const StatCard = ({ title, value, icon: Icon, unit = '$', color = 'text-primary'
 
 
 export default function DashboardHomePage() {
-  const { appUser, isLoading } = useAuth(); // Changed from 'user' to 'appUser' for clarity and added 'isLoading'
+  const { appUser, isLoading: authIsLoading } = useAuth();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [isFetchingDashboardData, setIsFetchingDashboardData] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  // Use the isLoading state from AuthContext.
-  // This ensures we wait until Firebase auth is checked AND the appUser profile fetch attempt is complete.
-  if (isLoading) {
+  useEffect(() => {
+    if (appUser && appUser.firebase_auth_uid && !dashboardData && !isFetchingDashboardData) {
+      const fetchDashboardSummary = async () => {
+        console.log('[DashboardHomePage] CLIENT: appUser available, fetching dashboard summary for UID:', appUser.firebase_auth_uid);
+        setIsFetchingDashboardData(true);
+        setFetchError(null);
+        try {
+          const response = await fetch(`/api/user/dashboard-summary?firebaseAuthUid=${appUser.firebase_auth_uid}`);
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: `Failed to fetch dashboard data. Status: ${response.status}` }));
+            console.error('[DashboardHomePage] CLIENT: Error fetching dashboard summary:', errorData);
+            throw new Error(errorData.message || `API request failed with status ${response.status}`);
+          }
+          const data: DashboardData = await response.json();
+          console.log('[DashboardHomePage] CLIENT: Dashboard summary fetched successfully:', data);
+          setDashboardData(data);
+        } catch (error: any) {
+          console.error('[DashboardHomePage] CLIENT: Exception while fetching dashboard summary:', error);
+          setFetchError(error.message || 'Could not load dashboard data.');
+        } finally {
+          setIsFetchingDashboardData(false);
+        }
+      };
+      fetchDashboardSummary();
+    }
+  }, [appUser, dashboardData, isFetchingDashboardData]);
+
+  if (authIsLoading) {
     return (
       <div className="flex h-[calc(100vh-10rem)] items-center justify-center">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="ml-3 text-muted-foreground">Loading user data...</p>
+        <p className="ml-3 text-muted-foreground">Initializing session...</p>
       </div>
     );
   }
 
-  // If no longer loading, but appUser is still null, it means something went wrong (e.g., user not found in DB after auth).
-  // DashboardLayout should ideally prevent this page from rendering if appUser is null after loading.
-  // But as a safeguard in this component:
   if (!appUser) {
      return (
       <div className="flex h-[calc(100vh-10rem)] items-center justify-center">
         <AlertTriangle className="h-10 w-10 text-destructive" />
-        <p className="ml-3 text-destructive-foreground">Could not load user data. Please try logging in again.</p>
+        <p className="ml-3 text-destructive-foreground">User data not available. Please try logging in again.</p>
+      </div>
+    );
+  }
+
+  if (isFetchingDashboardData && !dashboardData) {
+    return (
+      <div className="flex h-[calc(100vh-10rem)] items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="ml-3 text-muted-foreground">Loading dashboard data...</p>
       </div>
     );
   }
   
-  const data = mockDashboardData; // Use mock data
+  if (fetchError && !dashboardData) {
+    return (
+      <div className="flex h-[calc(100vh-10rem)] items-center justify-center text-center">
+        <AlertTriangle className="h-10 w-10 text-destructive mb-2" />
+        <p className="text-destructive-foreground">Error loading dashboard: {fetchError}</p>
+      </div>
+    );
+  }
+  
+  const dataToDisplay = dashboardData; // Use fetched data if available, otherwise mock for CopiedTraders
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary">Welcome, {appUser.username}!</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">Welcome, {appUser.username || appUser.first_name}!</h1>
           <p className="text-muted-foreground">Here&apos;s an overview of your trading account.</p>
         </div>
         <Button asChild variant="accent">
@@ -95,22 +138,27 @@ export default function DashboardHomePage() {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Assets" value={data.totalAssets} icon={BarChartBig} color="text-green-500" description="Portfolio Value" trend="up"/>
-        <StatCard title="Total Deposited" value={data.totalDeposited} icon={CheckCircle} color="text-blue-500" description="Confirmed Deposits"/>
-        <StatCard 
-          title="Total Profit/Loss" 
-          value={data.totalProfitLoss} 
-          icon={data.totalProfitLoss >= 0 ? TrendingUp : TrendingUp} // Icon changes based on P/L
-          color={data.totalProfitLoss >= 0 ? 'text-positive' : 'text-destructive'}
-          className={data.totalProfitLoss < 0 ? 'transform rotate-180' : ''} // Added for down trend
-          description="Overall Performance"
-          trend={data.totalProfitLoss > 0 ? 'up' : (data.totalProfitLoss < 0 ? 'down' : 'neutral')}
-        />
-        <StatCard title="Pending Deposits" value={data.pendingDeposits} icon={Clock} color="text-yellow-500" description="Awaiting Confirmation"/>
-      </div>
-      
-      {/* Relatable Imagery Section */}
+      {dataToDisplay ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <StatCard title="Total Assets" value={dataToDisplay.totalAssets} icon={BarChartBig} color="text-green-500" description="Portfolio Value" trend={dataToDisplay.totalProfitLoss > 0 ? "up" : (dataToDisplay.totalProfitLoss < 0 ? "down" : "neutral")}/>
+          <StatCard title="Total Deposited" value={dataToDisplay.totalDeposited} icon={CheckCircle} color="text-blue-500" description="Confirmed Deposits (Mocked)"/>
+          <StatCard
+            title="Total Profit/Loss"
+            value={dataToDisplay.totalProfitLoss}
+            icon={dataToDisplay.totalProfitLoss >= 0 ? TrendingUp : TrendingUp}
+            color={dataToDisplay.totalProfitLoss >= 0 ? 'text-positive' : 'text-destructive'}
+            className={dataToDisplay.totalProfitLoss < 0 ? 'transform rotate-180' : ''}
+            description="Overall Performance"
+            trend={dataToDisplay.totalProfitLoss > 0 ? 'up' : (dataToDisplay.totalProfitLoss < 0 ? 'down' : 'neutral')}
+          />
+          <StatCard title="Pending Deposits" value={dataToDisplay.pendingDeposits} icon={Clock} color="text-yellow-500" description="Awaiting Confirmation (Mocked)"/>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => <Card key={i} className="shadow-lg h-32 animate-pulse bg-muted/50"><CardHeader></CardHeader><CardContent></CardContent></Card>)}
+        </div>
+      )}
+
        <Card className="overflow-hidden shadow-lg">
         <div className="relative h-56 sm:h-72 md:h-80 w-full">
           <Image
@@ -130,18 +178,16 @@ export default function DashboardHomePage() {
         </div>
       </Card>
 
-
-      {/* Copy Trading Summary */}
-      {data.copiedTraders && data.copiedTraders.length > 0 && (
+      {mockCopiedTraders && mockCopiedTraders.length > 0 && (
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl font-semibold text-primary flex items-center">
-              <Users className="mr-3 h-6 w-6" /> My Copied Traders
+              <Users className="mr-3 h-6 w-6" /> My Copied Traders (Mock Data)
             </CardTitle>
             <CardDescription>Overview of traders you are currently copying.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {data.copiedTraders.map(trader => (
+            {mockCopiedTraders.map(trader => (
               <Card key={trader.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-secondary/30 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-semibold">
@@ -169,7 +215,6 @@ export default function DashboardHomePage() {
         </Card>
       )}
 
-      {/* Quick Actions */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-primary">Quick Actions</CardTitle>
