@@ -2,13 +2,14 @@
 // src/app/api/user/dashboard-summary/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import type { AppUser } from '@/lib/types'; // Assuming AppUser has firebase_auth_uid
+import type { AppUser } from '@/lib/types';
 
 interface DashboardSummary {
   totalAssets: number;
   totalProfitLoss: number;
-  totalDeposited: number; // Mocked for now
-  pendingDeposits: number; // Mocked for now
+  totalDeposited: number; 
+  totalWithdrawals: number; // Added totalWithdrawals
+  pendingDeposits: number; 
 }
 
 export async function GET(request: NextRequest) {
@@ -23,7 +24,6 @@ export async function GET(request: NextRequest) {
   console.log(`[API /user/dashboard-summary GET] SERVER: Attempting to fetch dashboard summary for firebaseAuthUid: ${firebaseAuthUid}`);
 
   try {
-    // 1. Get user's PostgreSQL ID
     const userResult = await query<{ id: string }>(
       `SELECT id FROM users WHERE firebase_auth_uid = $1`,
       [firebaseAuthUid]
@@ -36,9 +36,8 @@ export async function GET(request: NextRequest) {
     const userId = userResult.rows[0].id;
     console.log(`[API /user/dashboard-summary GET] SERVER: Found user ID: ${userId} for firebaseAuthUid: ${firebaseAuthUid}`);
 
-    // 2. Get wallet information
-    const walletResult = await query<{ balance: string; profit_loss_balance: string }>( // Balances are NUMERIC, come as string
-      `SELECT balance, profit_loss_balance FROM wallets WHERE user_id = $1 AND currency = 'USDT'`, // Assuming primary wallet is USDT
+    const walletResult = await query<{ balance: string; profit_loss_balance: string }>(
+      `SELECT balance, profit_loss_balance FROM wallets WHERE user_id = $1 AND currency = 'USDT'`,
       [userId]
     );
 
@@ -53,14 +52,16 @@ export async function GET(request: NextRequest) {
       console.log(`[API /user/dashboard-summary GET] SERVER: No USDT wallet found for user ID: ${userId}. Defaulting assets/P&L to 0.`);
     }
 
-    // Mocked values for now
+    // Mocked values for fields requiring transaction aggregation
     const totalDeposited = 0; // TODO: Calculate from transactions
+    const totalWithdrawals = 0; // TODO: Calculate from transactions
     const pendingDeposits = 0; // TODO: Implement logic for pending deposits
 
     const summary: DashboardSummary = {
       totalAssets,
       totalProfitLoss,
       totalDeposited,
+      totalWithdrawals,
       pendingDeposits,
     };
 

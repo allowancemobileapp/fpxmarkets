@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { DollarSign, TrendingUp, AlertTriangle, CheckCircle, Clock, Copy, Users, BarChartBig, UserCircle, Loader2 } from 'lucide-react';
+import { DollarSign, TrendingUp, AlertTriangle, CheckCircle, Clock, Copy, Users, BarChartBig, UserCircle, Loader2, ArrowDownCircle, ArrowUpCircle, MinusCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
@@ -13,16 +13,17 @@ interface DashboardData {
   totalAssets: number;
   totalDeposited: number;
   totalProfitLoss: number;
+  totalWithdrawals: number;
   pendingDeposits: number;
 }
 
-const mockCopiedTraders = [
+const mockCopiedTradersData = [ // Renamed to avoid conflict with Users icon
   { id: '1', username: 'CryptoKing', avatarSeed: 'CK', market: 'Cryptocurrencies', profitLoss: 150.25 },
   { id: '2', username: 'ForexMaster', avatarSeed: 'FM', market: 'Forex', profitLoss: -50.75 },
   { id: '3', username: 'StockWizard', avatarSeed: 'SW', market: 'Stocks', profitLoss: 300.00 },
 ];
 
-const StatCard = ({ title, value, icon: Icon, unit = '$', color = 'text-primary', description, trend }: {
+const StatCard = ({ title, value, icon: Icon, unit = '$', color = 'text-primary', description, trend, className }: {
   title: string;
   value: number | string;
   icon: React.ElementType;
@@ -30,11 +31,12 @@ const StatCard = ({ title, value, icon: Icon, unit = '$', color = 'text-primary'
   color?: string;
   description?: string;
   trend?: 'up' | 'down' | 'neutral';
+  className?: string; // To pass icon-specific class like rotate-180
 }) => (
   <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-      <Icon className={`h-5 w-5 ${color}`} />
+      <Icon className={`h-5 w-5 ${color} ${className || ''}`} />
     </CardHeader>
     <CardContent>
       <div className={`text-2xl font-bold ${color}`}>
@@ -57,6 +59,9 @@ export default function DashboardHomePage() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isFetchingDashboardData, setIsFetchingDashboardData] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+
+  // Mocked number of copy traders for UI display
+  const numberOfCopyTraders = mockCopiedTradersData.length; 
 
   useEffect(() => {
     if (appUser && appUser.firebase_auth_uid && !dashboardData && !isFetchingDashboardData) {
@@ -121,7 +126,7 @@ export default function DashboardHomePage() {
     );
   }
   
-  const dataToDisplay = dashboardData; // Use fetched data if available, otherwise mock for CopiedTraders
+  const dataToDisplay = dashboardData;
 
   return (
     <div className="space-y-8">
@@ -137,11 +142,10 @@ export default function DashboardHomePage() {
         </Button>
       </div>
 
-      {/* Key Metrics */}
       {dataToDisplay ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard title="Total Assets" value={dataToDisplay.totalAssets} icon={BarChartBig} color="text-green-500" description="Portfolio Value" trend={dataToDisplay.totalProfitLoss > 0 ? "up" : (dataToDisplay.totalProfitLoss < 0 ? "down" : "neutral")}/>
-          <StatCard title="Total Deposited" value={dataToDisplay.totalDeposited} icon={CheckCircle} color="text-blue-500" description="Confirmed Deposits (Mocked)"/>
+          <StatCard title="Total Assets" value={dataToDisplay.totalAssets} icon={BarChartBig} color="text-green-500" description="Current Portfolio Value" trend={dataToDisplay.totalProfitLoss > 0 ? "up" : (dataToDisplay.totalProfitLoss < 0 ? "down" : "neutral")}/>
+          <StatCard title="Total Deposited" value={dataToDisplay.totalDeposited} icon={ArrowDownCircle} color="text-blue-500" description="All Confirmed Deposits (Mocked)"/>
           <StatCard
             title="Total Profit/Loss"
             value={dataToDisplay.totalProfitLoss}
@@ -151,11 +155,15 @@ export default function DashboardHomePage() {
             description="Overall Performance"
             trend={dataToDisplay.totalProfitLoss > 0 ? 'up' : (dataToDisplay.totalProfitLoss < 0 ? 'down' : 'neutral')}
           />
+          <StatCard title="Total Withdrawn" value={dataToDisplay.totalWithdrawals} icon={ArrowUpCircle} color="text-orange-500" description="All Confirmed Withdrawals (Mocked)"/>
+          {/* This card can be enabled if pending deposits logic is implemented
           <StatCard title="Pending Deposits" value={dataToDisplay.pendingDeposits} icon={Clock} color="text-yellow-500" description="Awaiting Confirmation (Mocked)"/>
+          */}
+           <StatCard title="Active Copy Trades" value={numberOfCopyTraders} icon={Users} unit="" color="text-purple-500" description="Traders You're Copying (Mocked)"/>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => <Card key={i} className="shadow-lg h-32 animate-pulse bg-muted/50"><CardHeader></CardHeader><CardContent></CardContent></Card>)}
+          {[...Array(5)].map((_, i) => <Card key={i} className="shadow-lg h-32 animate-pulse bg-muted/50"><CardHeader></CardHeader><CardContent></CardContent></Card>)}
         </div>
       )}
 
@@ -178,7 +186,7 @@ export default function DashboardHomePage() {
         </div>
       </Card>
 
-      {mockCopiedTraders && mockCopiedTraders.length > 0 && (
+      {mockCopiedTradersData && mockCopiedTradersData.length > 0 && (
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl font-semibold text-primary flex items-center">
@@ -187,7 +195,7 @@ export default function DashboardHomePage() {
             <CardDescription>Overview of traders you are currently copying.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {mockCopiedTraders.map(trader => (
+            {mockCopiedTradersData.map(trader => (
               <Card key={trader.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-secondary/30 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-semibold">
