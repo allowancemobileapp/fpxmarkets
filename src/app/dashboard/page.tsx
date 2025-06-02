@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { DollarSign, TrendingUp, AlertTriangle, CheckCircle, Clock, Copy, Users, BarChartBig, UserCircle } from 'lucide-react'; // Added UserCircle
+import { DollarSign, TrendingUp, AlertTriangle, CheckCircle, Clock, Copy, Users, BarChartBig, UserCircle, Loader2 } from 'lucide-react'; // Added UserCircle, Loader2
 import Image from 'next/image';
 
 // Mock data for dashboard
@@ -53,10 +53,29 @@ const StatCard = ({ title, value, icon: Icon, unit = '$', color = 'text-primary'
 
 
 export default function DashboardHomePage() {
-  const { user } = useAuth();
+  const { appUser, isLoading } = useAuth(); // Changed from 'user' to 'appUser' for clarity and added 'isLoading'
 
-  if (!user) {
-    return <div>Loading user data...</div>; // Or a redirect handled by layout
+  // Use the isLoading state from AuthContext.
+  // This ensures we wait until Firebase auth is checked AND the appUser profile fetch attempt is complete.
+  if (isLoading) {
+    return (
+      <div className="flex h-[calc(100vh-10rem)] items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="ml-3 text-muted-foreground">Loading user data...</p>
+      </div>
+    );
+  }
+
+  // If no longer loading, but appUser is still null, it means something went wrong (e.g., user not found in DB after auth).
+  // DashboardLayout should ideally prevent this page from rendering if appUser is null after loading.
+  // But as a safeguard in this component:
+  if (!appUser) {
+     return (
+      <div className="flex h-[calc(100vh-10rem)] items-center justify-center">
+        <AlertTriangle className="h-10 w-10 text-destructive" />
+        <p className="ml-3 text-destructive-foreground">Could not load user data. Please try logging in again.</p>
+      </div>
+    );
   }
   
   const data = mockDashboardData; // Use mock data
@@ -65,7 +84,7 @@ export default function DashboardHomePage() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary">Welcome, {user.username}!</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">Welcome, {appUser.username}!</h1>
           <p className="text-muted-foreground">Here&apos;s an overview of your trading account.</p>
         </div>
         <Button asChild variant="accent">
@@ -176,4 +195,3 @@ export default function DashboardHomePage() {
     </div>
   );
 }
-
