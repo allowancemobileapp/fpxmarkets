@@ -24,7 +24,7 @@ export interface AppUser {
   account_type: AccountType | null; // This is the plan NAME like 'Beginner', 'Pro', derived from trading_plans.name
   trading_plan_id?: number | null;
   phone_number: string | null;
-  country_code: string | null; // Changed from 'country' to 'country_code'
+  country_code: string | null;
   profile_completed_at: string | null; // ISO date string
   pin_setup_completed_at: string | null; // ISO date string
   is_active?: boolean;
@@ -73,28 +73,39 @@ export const PinSetupFormSchema = z.object({
   confirmPin: z.string().length(4, "Confirm PIN must be 4 digits.").regex(/^\d{4}$/, "Confirm PIN must contain only digits."),
 }).refine(data => data.pin === data.confirmPin, {
   message: "PINs do not match.",
-  path: ["confirmPin"], 
+  path: ["confirmPin"],
 });
 export type PinSetupFormValues = z.infer<typeof PinSetupFormSchema>;
 
 
-// Schemas for API requests (matching backend expectations)
+// Schema for the profile update form on the client-side
+export const UpdateProfileFormSchema = z.object({
+  firstName: z.string().min(1, "First name is required.").max(100).optional().or(z.literal('')),
+  lastName: z.string().min(1, "Last name is required.").max(100).optional().or(z.literal('')),
+  username: z.string().min(3, "Username must be at least 3 characters.").max(100).regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores.").optional().or(z.literal('')),
+  phoneNumber: z.string().max(50).optional().or(z.literal('')), // Making min length optional for clearing the field
+  country_code: z.string().length(2, "Country selection is required.").optional().or(z.literal('')),
+});
+export type UpdateProfileFormValues = z.infer<typeof UpdateProfileFormSchema>;
+
+
+// Schema for the API request payload when updating a profile
 export const UpdateProfileRequestSchema = z.object({
   firebaseAuthUid: z.string(), // Used for identification
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   username: z.string().optional(),
   phoneNumber: z.string().optional(),
-  country_code: z.string().length(2).optional(), // Changed from country to country_code
-  // accountType might be updatable through a different flow or not at all by user directly
+  country_code: z.string().length(2).optional(),
 });
 export type UpdateProfilePayload = z.infer<typeof UpdateProfileRequestSchema>;
+
 
 // For /api/auth/register-user, the payload comes from SignupDetailsFormValues
 export const RegisterUserRequestSchema = SignupDetailsFormSchema.extend({
   email: z.string().email(), // Email comes from Firebase user
   firebaseAuthUid: z.string(),
-}).transform(data => ({ // Transform 'country' to 'country_code'
+}).transform(data => ({
     ...data,
     country_code: data.country, // The 'country' field from form IS the code
   }));
@@ -105,3 +116,4 @@ export const SetupPinRequestSchema = z.object({
   pin: z.string().length(4).regex(/^\d{4}$/), // The actual 4-digit PIN
 });
 export type SetupPinPayload = z.infer<typeof SetupPinRequestSchema>;
+
