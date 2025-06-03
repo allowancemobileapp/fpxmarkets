@@ -1,7 +1,6 @@
 
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,43 +8,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Users, Shield, Eye, Copy, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { useToast } from '@/hooks/use-toast';
-
-const mockTraders = [
-  { id: '1', username: 'AlphaTrader', avatarSeed: 'AT', risk: 'Medium', profit: '+25.5%', copiers: 1200, market: 'Forex & Crypto', image: "https://placehold.co/400x250.png", imageHint: "trader success" },
-  { id: '2', username: 'StockSavvy', avatarSeed: 'SS', risk: 'Low', profit: '+18.2%', copiers: 850, market: 'Stocks (US)', image: "https://placehold.co/400x251.png", imageHint: "stock market" },
-  { id: '3', username: 'YieldHero', avatarSeed: 'YH', risk: 'High', profit: '+45.0%', copiers: 500, market: 'Commodities', image: "https://placehold.co/400x252.png", imageHint: "global finance" },
-  { id: '4', username: 'SteadyGrowth', avatarSeed: 'SG', risk: 'Low', profit: '+12.8%', copiers: 1500, market: 'Indices & ETFs', image: "https://placehold.co/400x253.png", imageHint: "investment growth" },
-];
+import { useCopyTrading } from '@/contexts/CopyTradingContext'; // Import the context hook
+import { mockTraders } from '@/config/mockTraders'; // Import mockTraders
 
 export default function CopyTradingPage() {
-  const { toast } = useToast();
-  const [copiedTraderIds, setCopiedTraderIds] = useState<Set<string>>(new Set());
-
-  const handleToggleCopyTrader = (traderId: string, traderName: string) => {
-    setCopiedTraderIds(prevIds => {
-      const newIds = new Set(prevIds);
-      if (newIds.has(traderId)) {
-        newIds.delete(traderId);
-        setTimeout(() => {
-          toast({
-            title: "Copy Stopped",
-            description: `You have stopped copying ${traderName}.`,
-          });
-        }, 0);
-      } else {
-        newIds.add(traderId);
-        setTimeout(() => {
-          toast({
-            title: "Copy Started",
-            description: `You are now copying ${traderName}.`,
-            variant: "default",
-          });
-        }, 0);
-      }
-      return newIds;
-    });
-  };
+  const { toggleCopyTrader, isTraderCopied } = useCopyTrading(); // Use the context
 
   return (
     <div className="space-y-8">
@@ -53,7 +20,6 @@ export default function CopyTradingPage() {
         <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center">
           <Users className="mr-3 h-8 w-8" /> Copy Trading
         </h1>
-        {/* Optional: Filters or search for traders */}
       </div>
 
       <Card className="shadow-lg">
@@ -63,7 +29,7 @@ export default function CopyTradingPage() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {mockTraders.map(trader => {
-            const isCopied = copiedTraderIds.has(trader.id);
+            const isCopied = isTraderCopied(trader.id);
             return (
               <Card 
                 key={trader.id} 
@@ -109,7 +75,7 @@ export default function CopyTradingPage() {
                     variant={isCopied ? "destructive" : "accent"} 
                     size="sm" 
                     className="text-xs sm:text-sm"
-                    onClick={() => handleToggleCopyTrader(trader.id, trader.username)}
+                    onClick={() => toggleCopyTrader(trader.id, trader.username)}
                   >
                     {isCopied ? <CheckCircle className="mr-1.5 h-4 w-4" /> : <Copy className="mr-1.5 h-4 w-4" />}
                     {isCopied ? "Stop Copying" : "Copy"}

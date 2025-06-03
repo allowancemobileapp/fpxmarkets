@@ -8,6 +8,8 @@ import Link from 'next/link';
 import { DollarSign, TrendingUp, AlertTriangle, CheckCircle, Clock, Copy, Users, BarChartBig, UserCircle, Loader2, ArrowDownCircle, ArrowUpCircle, MinusCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { useCopyTrading } from '@/contexts/CopyTradingContext'; // Import the context hook
+import { mockTraders, type MockTrader } from '@/config/mockTraders'; // Import mockTraders data and type
 
 interface DashboardData {
   totalAssets: number;
@@ -17,12 +19,6 @@ interface DashboardData {
   pendingDeposits: number;
 }
 
-const mockCopiedTradersData = [ // Renamed to avoid conflict with Users icon
-  { id: '1', username: 'CryptoKing', avatarSeed: 'CK', market: 'Cryptocurrencies', profitLoss: 150.25 },
-  { id: '2', username: 'ForexMaster', avatarSeed: 'FM', market: 'Forex', profitLoss: -50.75 },
-  { id: '3', username: 'StockWizard', avatarSeed: 'SW', market: 'Stocks', profitLoss: 300.00 },
-];
-
 const StatCard = ({ title, value, icon: Icon, unit = '$', color = 'text-primary', description, trend, className }: {
   title: string;
   value: number | string;
@@ -31,7 +27,7 @@ const StatCard = ({ title, value, icon: Icon, unit = '$', color = 'text-primary'
   color?: string;
   description?: string;
   trend?: 'up' | 'down' | 'neutral';
-  className?: string; // To pass icon-specific class like rotate-180
+  className?: string;
 }) => (
   <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -56,12 +52,19 @@ const StatCard = ({ title, value, icon: Icon, unit = '$', color = 'text-primary'
 
 export default function DashboardHomePage() {
   const { appUser, isLoading: authIsLoading } = useAuth();
+  const { copiedTraderIds, getCopiedTradersCount } = useCopyTrading(); // Use context
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isFetchingDashboardData, setIsFetchingDashboardData] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [activeCopiedTraders, setActiveCopiedTraders] = useState<MockTrader[]>([]);
 
-  // Mocked number of copy traders for UI display
-  const numberOfCopyTraders = mockCopiedTradersData.length; 
+  useEffect(() => {
+    // Filter mockTraders to get the details of copied traders
+    const tradersBeingCopied = mockTraders.filter(trader => copiedTraderIds.has(trader.id));
+    setActiveCopiedTraders(tradersBeingCopied);
+  }, [copiedTraderIds]);
+
+  const numberOfCopyTraders = getCopiedTradersCount();
 
   useEffect(() => {
     if (appUser && appUser.firebase_auth_uid && !dashboardData && !isFetchingDashboardData) {
@@ -156,10 +159,7 @@ export default function DashboardHomePage() {
             trend={dataToDisplay.totalProfitLoss > 0 ? 'up' : (dataToDisplay.totalProfitLoss < 0 ? 'down' : 'neutral')}
           />
           <StatCard title="Total Withdrawn" value={dataToDisplay.totalWithdrawals} icon={ArrowUpCircle} color="text-orange-500" description="All Confirmed Withdrawals (Mocked)"/>
-          {/* This card can be enabled if pending deposits logic is implemented
-          <StatCard title="Pending Deposits" value={dataToDisplay.pendingDeposits} icon={Clock} color="text-yellow-500" description="Awaiting Confirmation (Mocked)"/>
-          */}
-           <StatCard title="Active Copy Trades" value={numberOfCopyTraders} icon={Users} unit="" color="text-purple-500" description="Traders You're Copying (Mocked)"/>
+          <StatCard title="Active Copy Trades" value={numberOfCopyTraders} icon={Users} unit="" color="text-purple-500" description="Traders You're Copying"/>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -186,16 +186,16 @@ export default function DashboardHomePage() {
         </div>
       </Card>
 
-      {mockCopiedTradersData && mockCopiedTradersData.length > 0 && (
+      {activeCopiedTraders.length > 0 && (
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl font-semibold text-primary flex items-center">
-              <Users className="mr-3 h-6 w-6" /> My Copied Traders (Mock Data)
+              <Users className="mr-3 h-6 w-6" /> My Copied Traders
             </CardTitle>
-            <CardDescription>Overview of traders you are currently copying.</CardDescription>
+            <CardDescription>Overview of traders you are currently copying ({activeCopiedTraders.length} total).</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {mockCopiedTradersData.map(trader => (
+            {activeCopiedTraders.map(trader => (
               <Card key={trader.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-secondary/30 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-semibold">
@@ -206,8 +206,8 @@ export default function DashboardHomePage() {
                     <p className="text-xs text-muted-foreground">{trader.market}</p>
                   </div>
                 </div>
-                <div className={`text-sm font-medium ${trader.profitLoss >= 0 ? 'text-positive' : 'text-destructive'}`}>
-                  P/L: ${trader.profitLoss.toFixed(2)}
+                <div className={`text-sm font-medium ${parseFloat(trader.profit) >= 0 ? 'text-positive' : 'text-destructive'}`}>
+                  Stated P/L: {trader.profit}
                 </div>
                  <Button variant="outline" size="sm" asChild>
                   <Link href={`/dashboard/copy-trading/${trader.id}`}>Manage</Link>

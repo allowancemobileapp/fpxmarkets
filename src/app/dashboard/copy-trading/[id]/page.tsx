@@ -5,25 +5,27 @@ import { useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, UserCircle, BarChart2, Shield, CalendarDays, TrendingUp, Users, Copy } from 'lucide-react'; // Added Copy icon
+import { ArrowLeft, UserCircle, BarChart2, Shield, CalendarDays, TrendingUp, Users, Copy, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Badge } from '@/components/ui/badge'; // Import Badge component
-
-// Mock data - in a real app, this would be fetched based on params.id
-const mockTraders = [
-  { id: '1', username: 'AlphaTrader', avatarSeed: 'AT', risk: 'Medium', profit: '+25.5%', copiers: 1200, market: 'Forex & Crypto', strategy: 'Scalping & Swing Trading', joined: '2023-01-15', image: "https://placehold.co/800x400.png", imageHint: "trader profile background" },
-  { id: '2', username: 'StockSavvy', avatarSeed: 'SS', risk: 'Low', profit: '+18.2%', copiers: 850, market: 'Stocks (US)', strategy: 'Value Investing & Blue Chips', joined: '2022-11-01', image: "https://placehold.co/800x401.png", imageHint: "stock market analysis" },
-  { id: '3', username: 'YieldHero', avatarSeed: 'YH', risk: 'High', profit: '+45.0%', copiers: 500, market: 'Commodities', strategy: 'Trend Following & Futures', joined: '2023-05-20', image: "https://placehold.co/800x402.png", imageHint: "commodities chart" },
-  { id: '4', username: 'SteadyGrowth', avatarSeed: 'SG', risk: 'Low', profit: '+12.8%', copiers: 1500, market: 'Indices & ETFs', strategy: 'Long-term Index Investing', joined: '2022-08-10', image: "https://placehold.co/800x403.png", imageHint: "etf growth chart" },
-];
+import { Badge } from '@/components/ui/badge';
+import { mockTraders } from '@/config/mockTraders'; // Import mockTraders
+import { useCopyTrading } from '@/contexts/CopyTradingContext'; // Import the context hook
+import { useEffect, useState } from 'react'; // For handling client-side state
 
 export default function TraderProfilePage() {
   const params = useParams();
   const traderId = typeof params.id === 'string' ? params.id : '';
+  const { toggleCopyTrader, isTraderCopied } = useCopyTrading(); // Use the context
   
-  // Find the trader from mock data. Replace with actual data fetching later.
   const trader = mockTraders.find(t => t.id === traderId);
+  const [isCopiedByCurrentUser, setIsCopiedByCurrentUser] = useState(false);
+
+  useEffect(() => {
+    if (trader) {
+      setIsCopiedByCurrentUser(isTraderCopied(trader.id));
+    }
+  }, [trader, isTraderCopied]);
 
   if (!trader) {
     return (
@@ -39,6 +41,12 @@ export default function TraderProfilePage() {
       </div>
     );
   }
+
+  const handleToggleCopyFromProfile = () => {
+    toggleCopyTrader(trader.id, trader.username);
+    // Optimistically update local state, context will also update
+    setIsCopiedByCurrentUser(!isCopiedByCurrentUser); 
+  };
 
   return (
     <div className="space-y-8">
@@ -125,19 +133,20 @@ export default function TraderProfilePage() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground flex items-center"><CalendarDays className="mr-2 h-4 w-4"/>Joined:</span>
-                  <span className="font-semibold">{new Date(trader.joined).toLocaleDateString()}</span>
+                  <span className="font-semibold">{trader.joined ? new Date(trader.joined).toLocaleDateString() : 'N/A'}</span>
                 </div>
               </CardContent>
             </Card>
             <Button 
-                variant="accent" 
+                variant={isCopiedByCurrentUser ? "destructive" : "accent"} 
                 size="lg" 
                 className="w-full"
-                onClick={() => alert(`UI Demo: Copying ${trader.username}. This would typically use the same logic as the main copy trading page.`)}
+                onClick={handleToggleCopyFromProfile}
             >
-              <Copy className="mr-2 h-5 w-5"/> Copy {trader.username}
+              {isCopiedByCurrentUser ? <CheckCircle className="mr-2 h-5 w-5"/> : <Copy className="mr-2 h-5 w-5"/>}
+              {isCopiedByCurrentUser ? `Stop Copying ${trader.username}` : `Copy ${trader.username}`}
             </Button>
-            <Button variant="outline" className="w-full">Message {trader.username} (Coming Soon)</Button>
+            <Button variant="outline" className="w-full" disabled>Message {trader.username} (Coming Soon)</Button>
           </div>
         </CardContent>
       </Card>
