@@ -7,9 +7,9 @@ import type { AppUser } from '@/lib/types';
 interface DashboardSummary {
   totalAssets: number;          // Represents current_wallet_main_balance + current_wallet_profit_loss_balance
   totalProfitLoss: number;      // Represents current_wallet_profit_loss_balance
-  totalDeposited: number;       // Mocked: Would be SUM of all historical deposits
-  totalWithdrawals: number;     // Mocked: Would be SUM of all historical withdrawals
-  pendingDeposits: number;      // Mocked
+  totalDeposited: number;       // SUM of all 'COMPLETED' 'DEPOSIT' transactions
+  totalWithdrawals: number;     // SUM of all 'COMPLETED' 'WITHDRAWAL' transactions
+  pendingDeposits: number;      // SUM of all 'PENDING' 'DEPOSIT' transactions
 }
 
 export async function GET(request: NextRequest) {
@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
     const userId = userResult.rows[0].id;
     console.log(`[API /user/dashboard-summary GET] SERVER: Found user ID: ${userId} for firebaseAuthUid: ${firebaseAuthUid}`);
 
+    // Fetch wallet balance
     const walletResult = await query<{ balance: string; profit_loss_balance: string }>(
       `SELECT balance, profit_loss_balance FROM wallets WHERE user_id = $1 AND currency = 'USDT'`,
       [userId]
@@ -54,12 +55,41 @@ export async function GET(request: NextRequest) {
 
     const calculatedTotalAssets = currentWalletBalance + currentProfitLoss;
 
-    // Mocked values for fields requiring transaction aggregation from a transactions table
-    // In a real system, these would be calculated by SUMming relevant transaction records.
-    const totalDeposited = 0; 
-    const totalWithdrawals = 0; 
-    const pendingDeposits = 0; 
-    console.log(`[API /user/dashboard-summary GET] SERVER: NOTE - totalDeposited and totalWithdrawals are currently mocked as 0. A transaction history system is required for accurate values.`);
+    // Fetch transaction aggregates
+    // Ensure the 'transactions' table exists and has 'amount_usd_equivalent' column.
+    const transactionsAggregateQuery = `
+      SELECT 
+        COALESCE(SUM(CASE WHEN type = 'DEPOSIT' AND status = 'COMPLETED' THEN amount_usd_equivalent ELSE 0 END), 0) as total_deposited,
+        COALESCE(SUM(CASE WHEN type = 'WITHDRAWAL' AND status = 'COMPLETED' THEN amount_usd_equivalent ELSE 0 END), 0) as total_withdrawn,
+        COALESCE(SUM(CASE WHEN type = 'DEPOSIT' AND status = 'PENDING' THEN amount_usd_equivalent ELSE 0 END), 0) as pending_deposits
+      FROM transactions
+      WHERE user_id = $1;
+    `;
+    
+    let totalDeposited = 0;
+    let totalWithdrawals = 0;
+    let pendingDeposits = 0;
+
+    try {
+        const aggResult = await query(transactionsAggregateQuery, [userId]);
+        if (aggResult.rows.length > 0) {
+            totalDeposited = parseFloat(aggResult.rows[0].total_deposited) || 0;
+            totalWithdrawals = parseFloat(aggResult.rows[0].total_withdrawn) || 0;
+            pendingDeposits = parseFloat(aggResult.rows[0].pending_deposits) || 0;
+            console.log(`[API /user/dashboard-summary GET] SERVER: Transaction aggregates for user ID ${userId}: Deposited: ${totalDeposited}, Withdrawn: ${totalWithdrawals}, Pending Deposits: ${pendingDeposits}`);
+        } else {
+            console.log(`[API /user/dashboard-summary GET] SERVER: No transaction records found for user ID ${userId}. Totals will be 0.`);
+        }
+    } catch (dbError: any) {
+        // Check if the error is because the transactions table doesn't exist (common error code for undefined table is '42P01')
+        if (dbError.code === '42P01') {
+            console.warn(`[API /user/dashboard-summary GET] SERVER: The 'transactions' table does not exist. totalDeposited, totalWithdrawals, and pendingDeposits will be 0. Please create the table.`);
+        } else {
+            console.error(`[API /user/dashboard-summary GET] SERVER: Error fetching transaction aggregates for user ID ${userId}:`, dbError.message);
+            // Decide if you want to throw or just return 0s. For robustness, we'll return 0s but log the error.
+        }
+        // Defaults are already 0, so no need to set them again here
+    }
 
 
     const summary: DashboardSummary = {
