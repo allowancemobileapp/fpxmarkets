@@ -5,11 +5,11 @@ import { query } from '@/lib/db';
 import type { AppUser } from '@/lib/types';
 
 interface DashboardSummary {
-  totalAssets: number;
-  totalProfitLoss: number;
-  totalDeposited: number; 
-  totalWithdrawals: number; // Added totalWithdrawals
-  pendingDeposits: number; 
+  totalAssets: number;          // Represents current_wallet_main_balance + current_wallet_profit_loss_balance
+  totalProfitLoss: number;      // Represents current_wallet_profit_loss_balance
+  totalDeposited: number;       // Mocked: Would be SUM of all historical deposits
+  totalWithdrawals: number;     // Mocked: Would be SUM of all historical withdrawals
+  pendingDeposits: number;      // Mocked
 }
 
 export async function GET(request: NextRequest) {
@@ -41,25 +41,30 @@ export async function GET(request: NextRequest) {
       [userId]
     );
 
-    let totalAssets = 0;
-    let totalProfitLoss = 0;
+    let currentWalletBalance = 0;
+    let currentProfitLoss = 0;
 
     if (walletResult.rows.length > 0) {
-      totalAssets = parseFloat(walletResult.rows[0].balance) || 0;
-      totalProfitLoss = parseFloat(walletResult.rows[0].profit_loss_balance) || 0;
-      console.log(`[API /user/dashboard-summary GET] SERVER: Wallet found for user ID ${userId}. Assets: ${totalAssets}, P/L: ${totalProfitLoss}`);
+      currentWalletBalance = parseFloat(walletResult.rows[0].balance) || 0;
+      currentProfitLoss = parseFloat(walletResult.rows[0].profit_loss_balance) || 0;
+      console.log(`[API /user/dashboard-summary GET] SERVER: Wallet found for user ID ${userId}. Main Balance: ${currentWalletBalance}, P/L Balance: ${currentProfitLoss}`);
     } else {
-      console.log(`[API /user/dashboard-summary GET] SERVER: No USDT wallet found for user ID: ${userId}. Defaulting assets/P&L to 0.`);
+      console.log(`[API /user/dashboard-summary GET] SERVER: No USDT wallet found for user ID: ${userId}. Defaulting balances to 0.`);
     }
 
-    // Mocked values for fields requiring transaction aggregation
-    const totalDeposited = 0; // TODO: Calculate from transactions
-    const totalWithdrawals = 0; // TODO: Calculate from transactions
-    const pendingDeposits = 0; // TODO: Implement logic for pending deposits
+    const calculatedTotalAssets = currentWalletBalance + currentProfitLoss;
+
+    // Mocked values for fields requiring transaction aggregation from a transactions table
+    // In a real system, these would be calculated by SUMming relevant transaction records.
+    const totalDeposited = 0; 
+    const totalWithdrawals = 0; 
+    const pendingDeposits = 0; 
+    console.log(`[API /user/dashboard-summary GET] SERVER: NOTE - totalDeposited and totalWithdrawals are currently mocked as 0. A transaction history system is required for accurate values.`);
+
 
     const summary: DashboardSummary = {
-      totalAssets,
-      totalProfitLoss,
+      totalAssets: calculatedTotalAssets,
+      totalProfitLoss: currentProfitLoss,
       totalDeposited,
       totalWithdrawals,
       pendingDeposits,
