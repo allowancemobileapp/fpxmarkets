@@ -5,9 +5,10 @@ import { useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, UserCircle, BarChart2, Shield, CalendarDays, TrendingUp, Users } from 'lucide-react';
+import { ArrowLeft, UserCircle, BarChart2, Shield, CalendarDays, TrendingUp, Users, Copy } from 'lucide-react'; // Added Copy icon
 import Link from 'next/link';
 import Image from 'next/image';
+import { Badge } from '@/components/ui/badge'; // Import Badge component
 
 // Mock data - in a real app, this would be fetched based on params.id
 const mockTraders = [
