@@ -55,13 +55,12 @@ export async function GET(request: NextRequest) {
 
     const calculatedTotalAssets = currentWalletBalance + currentProfitLoss;
 
-    // Fetch transaction aggregates
-    // Ensure the 'transactions' table exists and has 'amount_usd_equivalent' column.
+    // Fetch transaction aggregates using the correct column name 'transaction_type'
     const transactionsAggregateQuery = `
       SELECT 
-        COALESCE(SUM(CASE WHEN type = 'DEPOSIT' AND status = 'COMPLETED' THEN amount_usd_equivalent ELSE 0 END), 0) as total_deposited,
-        COALESCE(SUM(CASE WHEN type = 'WITHDRAWAL' AND status = 'COMPLETED' THEN amount_usd_equivalent ELSE 0 END), 0) as total_withdrawn,
-        COALESCE(SUM(CASE WHEN type = 'DEPOSIT' AND status = 'PENDING' THEN amount_usd_equivalent ELSE 0 END), 0) as pending_deposits
+        COALESCE(SUM(CASE WHEN transaction_type = 'DEPOSIT' AND status = 'COMPLETED' THEN amount_usd_equivalent ELSE 0 END), 0) as total_deposited,
+        COALESCE(SUM(CASE WHEN transaction_type = 'WITHDRAWAL' AND status = 'COMPLETED' THEN amount_usd_equivalent ELSE 0 END), 0) as total_withdrawn,
+        COALESCE(SUM(CASE WHEN transaction_type = 'DEPOSIT' AND status = 'PENDING' THEN amount_usd_equivalent ELSE 0 END), 0) as pending_deposits
       FROM transactions
       WHERE user_id = $1;
     `;
@@ -82,11 +81,11 @@ export async function GET(request: NextRequest) {
         }
     } catch (dbError: any) {
         // Check if the error is because the transactions table doesn't exist (common error code for undefined table is '42P01')
+        // This check might be less relevant now that we know the table exists, but good for robustness.
         if (dbError.code === '42P01') {
-            console.warn(`[API /user/dashboard-summary GET] SERVER: The 'transactions' table does not exist. totalDeposited, totalWithdrawals, and pendingDeposits will be 0. Please create the table.`);
+            console.warn(`[API /user/dashboard-summary GET] SERVER: The 'transactions' table might not exist or is inaccessible. totalDeposited, totalWithdrawals, and pendingDeposits will be 0. Error: ${dbError.message}`);
         } else {
             console.error(`[API /user/dashboard-summary GET] SERVER: Error fetching transaction aggregates for user ID ${userId}:`, dbError.message);
-            // Decide if you want to throw or just return 0s. For robustness, we'll return 0s but log the error.
         }
         // Defaults are already 0, so no need to set them again here
     }
@@ -109,3 +108,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: 'Internal server error while fetching dashboard summary', detail: error.message }, { status: 500 });
   }
 }
+
