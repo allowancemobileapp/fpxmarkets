@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Users, Shield, Eye, Copy, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { useToast } from '@/hooks/use-toast';
 
 const mockTraders = [
   { id: '1', username: 'AlphaTrader', avatarSeed: 'AT', risk: 'Medium', profit: '+25.5%', copiers: 1200, market: 'Forex & Crypto', image: "https://placehold.co/400x250.png", imageHint: "trader success" },
@@ -27,17 +27,21 @@ export default function CopyTradingPage() {
       const newIds = new Set(prevIds);
       if (newIds.has(traderId)) {
         newIds.delete(traderId);
-        toast({
-          title: "Copy Stopped",
-          description: `You have stopped copying ${traderName}.`,
-        });
+        setTimeout(() => {
+          toast({
+            title: "Copy Stopped",
+            description: `You have stopped copying ${traderName}.`,
+          });
+        }, 0);
       } else {
         newIds.add(traderId);
-        toast({
-          title: "Copy Started",
-          description: `You are now copying ${traderName}.`,
-          variant: "default",
-        });
+        setTimeout(() => {
+          toast({
+            title: "Copy Started",
+            description: `You are now copying ${traderName}.`,
+            variant: "default",
+          });
+        }, 0);
       }
       return newIds;
     });
