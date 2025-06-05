@@ -148,7 +148,7 @@ export default function DashboardHomePage() {
       {dataToDisplay ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard title="Total Assets" value={dataToDisplay.totalAssets} icon={BarChartBig} color="text-green-500" description="Current Portfolio Value" trend={dataToDisplay.totalProfitLoss > 0 ? "up" : (dataToDisplay.totalProfitLoss < 0 ? "down" : "neutral")}/>
-          <StatCard title="Total Deposited" value={dataToDisplay.totalDeposited} icon={ArrowDownCircle} color="text-blue-500" description="All Confirmed Deposits (Mocked)"/>
+          <StatCard title="Total Deposited" value={dataToDisplay.totalDeposited} icon={ArrowDownCircle} color="text-blue-500" description="All Confirmed Deposits"/>
           <StatCard
             title="Total Profit/Loss"
             value={dataToDisplay.totalProfitLoss}
@@ -158,7 +158,7 @@ export default function DashboardHomePage() {
             description="Overall Performance"
             trend={dataToDisplay.totalProfitLoss > 0 ? 'up' : (dataToDisplay.totalProfitLoss < 0 ? 'down' : 'neutral')}
           />
-          <StatCard title="Total Withdrawn" value={dataToDisplay.totalWithdrawals} icon={ArrowUpCircle} color="text-orange-500" description="All Confirmed Withdrawals (Mocked)"/>
+          <StatCard title="Total Withdrawn" value={dataToDisplay.totalWithdrawals} icon={ArrowUpCircle} color="text-orange-500" description="All Confirmed Withdrawals"/>
           <StatCard title="Active Copy Trades" value={numberOfCopyTraders} icon={Users} unit="" color="text-purple-500" description="Traders You're Copying"/>
         </div>
       ) : (

@@ -93,7 +93,7 @@ export default function TraderProfilePage() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl flex items-center text-primary"><TrendingUp className="mr-2 h-5 w-5"/> Performance (Mock)</CardTitle>
+                <CardTitle className="text-xl flex items-center text-primary"><TrendingUp className="mr-2 h-5 w-5"/> Performance</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="aspect-video bg-muted/30 rounded-md flex items-center justify-center">
