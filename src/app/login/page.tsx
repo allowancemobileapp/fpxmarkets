@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import LoginForm from '@/components/auth/LoginForm';
 import Link from 'next/link';
