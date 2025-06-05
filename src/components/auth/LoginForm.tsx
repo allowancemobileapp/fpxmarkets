@@ -31,10 +31,11 @@ export default function LoginForm() {
   async function onSubmit(values: LoginFormValues) {
     setIsLoading(true);
     try {
-      const userCredential = await handleFirebaseEmailPasswordLogin(values.email, values.password);
+      // handleFirebaseEmailPasswordLogin returns the FirebaseUser object directly
+      const firebaseUser = await handleFirebaseEmailPasswordLogin(values.email, values.password);
       toast({
         title: 'Login Successful',
-        description: `Welcome back, ${userCredential.user.email}!`,
+        description: `Welcome back, ${firebaseUser.email}!`, // Corrected: use firebaseUser.email
       });
       // AuthContext's onAuthStateChanged will handle redirection based on profile status
       // No explicit router.push needed here for that.
