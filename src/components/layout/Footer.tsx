@@ -24,9 +24,6 @@ export default function Footer() {
                 Terms of Service
             </Link>
         </div>
-        <p className="mt-2">
-          This is a fictional platform for demonstration purposes only.
-        </p>
       </div>
     </footer>
   );
