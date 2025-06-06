@@ -117,3 +117,35 @@ export const SetupPinRequestSchema = z.object({
 });
 export type SetupPinPayload = z.infer<typeof SetupPinRequestSchema>;
 
+// Bank Withdrawal Form Schema
+export const BankWithdrawalFormSchema = z.object({
+  amountUSD: z.preprocess(
+    (val) => parseFloat(z.string().parse(val)),
+    z.number().min(50, "Withdrawal amount must be at least $50.") 
+  ),
+  bankName: z.string().min(3, "Bank name is required.").max(100),
+  accountHolderName: z.string().min(3, "Account holder name is required.").max(100),
+  accountNumber: z.string().min(5, "Account number is required.").max(30).regex(/^[a-zA-Z0-9-]+$/, "Account number contains invalid characters."),
+  swiftBic: z.string().min(8, "SWIFT/BIC code must be 8-11 characters.").max(11).regex(/^[A-Z0-9]{8,11}$/, "Invalid SWIFT/BIC code format.").optional().or(z.literal('')),
+  bankCountry: z.string().length(2, "Bank country is required."),
+  iban: z.string().optional().or(z.literal('')),
+  sortCode: z.string().optional().or(z.literal('')), 
+  routingNumber: z.string().optional().or(z.literal('')),
+  notes: z.string().max(200, "Notes cannot exceed 200 characters.").optional().or(z.literal('')),
+});
+export type BankWithdrawalFormValues = z.infer<typeof BankWithdrawalFormSchema>;
+
+// BTC Withdrawal Form Schema
+export const BTCWithdrawalFormSchema = z.object({
+  amountUSD: z.preprocess(
+    (val) => parseFloat(z.string().parse(val)),
+    z.number().min(20, "BTC withdrawal amount must be at least $20 USD equivalent.") // Example minimum for BTC
+  ),
+  btcAddress: z.string()
+    .min(26, "BTC address seems too short.")
+    .max(62, "BTC address seems too long.")
+    // Basic regex for common BTC address formats (P2PKH, P2SH, Bech32), not exhaustive
+    .regex(/^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,61}$/, "Invalid BTC wallet address format."), 
+  notes: z.string().max(200, "Notes cannot exceed 200 characters.").optional().or(z.literal('')),
+});
+export type BTCWithdrawalFormValues = z.infer<typeof BTCWithdrawalFormSchema>;
