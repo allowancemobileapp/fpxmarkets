@@ -26,11 +26,11 @@ export default function LiveChatButton() {
     <Button
       variant="accent"
       size="icon"
-      className="fixed bottom-6 right-6 rounded-full h-14 w-14 shadow-lg z-50 flex items-center justify-center transition-transform hover:scale-110"
+      className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 rounded-full h-12 w-12 sm:h-14 sm:w-14 shadow-lg z-50 flex items-center justify-center transition-transform hover:scale-110"
       onClick={handleChatClick}
       aria-label="Open Live Chat"
     >
-      <MessageCircle className="h-7 w-7" />
+      <MessageCircle className="h-6 w-6 sm:h-7 sm:w-7" />
     </Button>
   );
 }
