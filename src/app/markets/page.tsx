@@ -1,3 +1,4 @@
+
 import GenericPageLayout from "@/components/layout/GenericPageLayout";
 import type { Metadata } from 'next';
 import Image from 'next/image';
@@ -17,7 +18,7 @@ const marketCategories = [
     title: "Forex (Foreign Exchange)",
     description: "Trade the world's largest financial market. Access major, minor, and exotic currency pairs with competitive spreads and 24/5 availability.",
     examples: ["EUR/USD", "GBP/JPY", "AUD/CAD"],
-    imageSrc: "https://placehold.co/600x400.png",
+    imageSrc: "https://picsum.photos/seed/forexMarket/600/400",
     imageHint: "forex currency chart"
   },
   {
@@ -25,23 +26,23 @@ const marketCategories = [
     title: "Shares CFDs",
     description: "Speculate on the price movements of leading global companies from various sectors like tech, finance, and healthcare. Trade CFDs without owning the underlying asset.",
     examples: ["Apple (AAPL)", "Tesla (TSLA)", "Amazon (AMZN)"],
-    imageSrc: "https://placehold.co/600x401.png",
+    imageSrc: "https://picsum.photos/seed/sharesCFD/600/401",
     imageHint: "stock market graph"
   },
   {
-    icon: Briefcase, // Changed from BarChart3 for better distinction from Indices
+    icon: Briefcase,
     title: "Commodities",
     description: "Diversify your portfolio by trading CFDs on hard and soft commodities, including precious metals like Gold and Silver, energies like Crude Oil, and agricultural products.",
     examples: ["Gold (XAU/USD)", "Crude Oil (WTI)", "Natural Gas"],
-    imageSrc: "https://placehold.co/600x402.png",
+    imageSrc: "https://picsum.photos/seed/commoditiesMarket/600/402",
     imageHint: "gold oil commodities"
   },
   {
-    icon: BarChart3, // Was Percent, BarChart3 is better for Indices
+    icon: BarChart3,
     title: "Indices CFDs",
     description: "Gain exposure to entire stock market sectors by trading CFDs on major global indices. Speculate on the overall performance of economies like the US, UK, Germany, and Japan.",
     examples: ["S&P 500", "NASDAQ 100", "FTSE 100"],
-    imageSrc: "https://placehold.co/600x403.png",
+    imageSrc: "https://picsum.photos/seed/indicesCFD/600/403",
     imageHint: "global indices chart"
   },
   {
@@ -49,7 +50,7 @@ const marketCategories = [
     title: "Digital Currencies (Cryptocurrencies)",
     description: "Explore the dynamic world of digital currencies. Trade CFDs on popular cryptocurrencies like Bitcoin, Ethereum, and others against major fiat currencies.",
     examples: ["BTC/USD", "ETH/USD", "LTC/USD"],
-    imageSrc: "https://placehold.co/600x404.png",
+    imageSrc: "https://picsum.photos/seed/cryptoMarket/600/404",
     imageHint: "cryptocurrency coins network"
   }
 ];
