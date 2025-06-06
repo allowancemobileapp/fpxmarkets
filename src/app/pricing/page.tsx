@@ -100,7 +100,7 @@ export default function PricingPage() {
                 </div>
                 <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-xl">
                     <Image
-                        src="https://placehold.co/600x400.png"
+                        src="https://picsum.photos/seed/pricingTransparency/600/400"
                         alt="Transparent financial operations"
                         layout="fill"
                         objectFit="cover"

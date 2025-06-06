@@ -19,7 +19,7 @@ const resourceCategories = [
     description: "Deepen your understanding of trading concepts, strategies, and market analysis with our comprehensive articles. Suitable for both beginners and experienced traders.",
     linkText: "Browse Articles",
     linkHref: "#articles", // Placeholder
-    imageSrc: "https://placehold.co/600x400.png",
+    imageSrc: "https://picsum.photos/seed/resArticles/600/400",
     imageHint: "education learning books"
   },
   {
@@ -28,8 +28,8 @@ const resourceCategories = [
     description: "Watch expert-led video tutorials on platform usage, technical analysis, and trading psychology. Join our live webinars for interactive learning sessions.",
     linkText: "Watch Videos",
     linkHref: "#videos", // Placeholder
-    imageSrc: "https://placehold.co/600x401.png",
-    imageHint: "video tutorial play button"
+    imageSrc: "https://picsum.photos/seed/resVideos/600/401",
+    imageHint: "video tutorial play"
   },
   {
     icon: Feather, // Using Feather for "Market Analysis & News"
@@ -37,7 +37,7 @@ const resourceCategories = [
     description: "Stay informed with daily market commentary, technical analysis reports, and breaking financial news that could impact your trades.",
     linkText: "Read Analysis",
     linkHref: "#analysis", // Placeholder
-    imageSrc: "https://placehold.co/600x402.png",
+    imageSrc: "https://picsum.photos/seed/resAnalysis/600/402",
     imageHint: "financial news charts"
   },
   {
@@ -46,7 +46,7 @@ const resourceCategories = [
     description: "Utilize our suite of trading tools, including economic calendars, pip calculators, and volatility trackers to make more informed decisions.",
     linkText: "Access Tools",
     linkHref: "#tools", // Placeholder
-    imageSrc: "https://placehold.co/600x403.png",
+    imageSrc: "https://picsum.photos/seed/resTools/600/403",
     imageHint: "charts graphs tools"
   },
   {
@@ -55,7 +55,7 @@ const resourceCategories = [
     description: "Find answers to frequently asked questions about our services, platforms, account management, and more. Our support team is also ready to assist.",
     linkText: "Visit FAQ",
     linkHref: "/contact",
-    imageSrc: "https://placehold.co/600x404.png",
+    imageSrc: "https://picsum.photos/seed/resSupport/600/404",
     imageHint: "support helpdesk communication"
   }
 ];

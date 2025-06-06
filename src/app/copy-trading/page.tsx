@@ -17,28 +17,28 @@ const copyTradingFeatures = [
     icon: Users,
     title: "Follow Experienced Traders",
     content: "Browse a curated list of successful traders, review their performance statistics, risk profiles, and trading styles before deciding to copy them.",
-    imageSrc: "https://placehold.co/600x400.png",
+    imageSrc: "https://picsum.photos/seed/copyTraderProfiles/600/400",
     imageHint: "trader profiles selection"
   },
   {
     icon: Copy,
     title: "Automated Strategy Replication",
     content: "Once you choose a trader to copy, our platform automatically replicates their trades in your account in real-time, proportionally to your allocated funds.",
-    imageSrc: "https://placehold.co/600x401.png",
+    imageSrc: "https://picsum.photos/seed/copyAutoTrading/600/401",
     imageHint: "automated trading process"
   },
   {
     icon: TrendingUp,
     title: "Diversify Your Portfolio",
     content: "Copy trading can be an excellent way to diversify your investment strategies by tapping into the expertise of multiple traders across different markets.",
-    imageSrc: "https://placehold.co/600x402.png",
+    imageSrc: "https://picsum.photos/seed/copyPortfolioDiv/600/402",
     imageHint: "portfolio diversification chart"
   },
   {
     icon: BarChartBig,
     title: "Transparent Performance",
     content: "Monitor the performance of your copied trades directly from your dashboard. Get detailed reports and insights into how your copied strategies are performing.",
-    imageSrc: "https://placehold.co/600x403.png",
+    imageSrc: "https://picsum.photos/seed/copyAnalytics/600/403",
     imageHint: "performance analytics dashboard"
   }
 ];

@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -27,7 +28,7 @@ export default function HeroSection() {
       </div>
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <Image
-          src="https://placehold.co/1920x1080.png"
+          src="https://picsum.photos/seed/heroBgFinancial/1920/1080"
           alt="Abstract financial background"
           layout="fill"
           objectFit="cover"

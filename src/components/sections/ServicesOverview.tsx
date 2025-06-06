@@ -1,3 +1,4 @@
+
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Landmark, TrendingUp, Bitcoin, Briefcase, BarChart3, ShieldCheck } from "lucide-react";
 import Image from "next/image";
@@ -15,42 +16,42 @@ const services: Service[] = [
     icon: Landmark,
     title: "Forex Trading",
     description: "Trade major, minor, and exotic currency pairs with low spreads.",
-    imageSrc: "https://picsum.photos/400/250",
+    imageSrc: "https://picsum.photos/seed/serviceForex/400/250",
     imageHint: "currency exchange"
   },
   {
     icon: TrendingUp,
     title: "Share CFDs",
     description: "Access global stock markets and trade CFDs on leading companies.",
-    imageSrc: "https://picsum.photos/400/251",
+    imageSrc: "https://picsum.photos/seed/serviceShares/400/251",
     imageHint: "stock chart"
   },
   {
     icon: Bitcoin,
     title: "Digital Currencies",
     description: "Explore the world of cryptocurrencies with our secure platform.",
-    imageSrc: "https://picsum.photos/400/252",
+    imageSrc: "https://picsum.photos/seed/serviceCrypto/400/252",
     imageHint: "crypto coins"
   },
   {
     icon: Briefcase,
     title: "Commodities",
     description: "Trade popular commodities like gold, oil, and agricultural products.",
-    imageSrc: "https://picsum.photos/400/253",
+    imageSrc: "https://picsum.photos/seed/serviceCommodities/400/253",
     imageHint: "gold bars"
   },
   {
     icon: BarChart3,
     title: "Indices",
     description: "Speculate on the performance of global stock market indices.",
-    imageSrc: "https://picsum.photos/400/254",
+    imageSrc: "https://picsum.photos/seed/serviceIndices/400/254",
     imageHint: "financial graphs"
   },
   {
     icon: ShieldCheck,
     title: "Secure Platforms",
     description: "Trade with confidence on our robust and reliable trading platforms.",
-    imageSrc: "https://picsum.photos/400/255",
+    imageSrc: "https://picsum.photos/seed/serviceSecurity/400/255",
     imageHint: "security technology"
   }
 ];

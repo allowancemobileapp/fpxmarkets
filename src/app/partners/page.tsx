@@ -18,7 +18,7 @@ const partnershipTypes = [
     title: "Introducing Broker (IB) Program",
     description: "Refer clients to FPX Markets and earn competitive commissions based on their trading activity. We provide comprehensive support, marketing materials, and advanced reporting tools to help you succeed.",
     benefits: ["High commission rates", "Personalized IB portal", "Marketing tools & resources", "Dedicated support"],
-    imageSrc: "https://placehold.co/600x400.png",
+    imageSrc: "https://picsum.photos/seed/partnerIB/600/400",
     imageHint: "business handshake deal"
   },
   {
@@ -26,7 +26,7 @@ const partnershipTypes = [
     title: "Affiliate Program",
     description: "Monetize your online traffic by promoting FPX Markets. Earn attractive CPA (Cost Per Acquisition) or revenue share for every qualified client you refer through your unique affiliate link.",
     benefits: ["Flexible commission models (CPA, RevShare)", "High conversion rates", "Real-time tracking & reporting", "Promotional materials"],
-    imageSrc: "https://placehold.co/600x401.png",
+    imageSrc: "https://picsum.photos/seed/partnerAffiliate/600/401",
     imageHint: "affiliate marketing network"
   }
 ];

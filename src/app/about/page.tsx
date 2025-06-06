@@ -47,7 +47,7 @@ export default function AboutUsPage() {
             </div>
             <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-xl">
               <Image
-                src="https://placehold.co/600x400.png"
+                src="https://picsum.photos/seed/aboutGlobalNet/600/400"
                 alt="Global financial network"
                 layout="fill"
                 objectFit="cover"
@@ -84,7 +84,7 @@ export default function AboutUsPage() {
            <div className="grid md:grid-cols-2 gap-8 items-center">
              <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-xl order-last md:order-first">
               <Image
-                src="https://placehold.co/600x401.png"
+                src="https://picsum.photos/seed/aboutTeamWork/600/401"
                 alt="FPX Markets team working"
                 layout="fill"
                 objectFit="cover"

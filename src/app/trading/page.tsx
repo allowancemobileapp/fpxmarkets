@@ -1,3 +1,4 @@
+
 import GenericPageLayout from "@/components/layout/GenericPageLayout";
 import type { Metadata } from 'next';
 import Image from 'next/image';
@@ -16,35 +17,35 @@ const tradingInfoSections = [
     icon: Briefcase,
     title: "Tradable Instruments",
     content: "FPX Markets offers a diverse range of instruments across global markets. Trade Forex currency pairs (Majors, Minors, Exotics), CFDs on Shares of leading global companies, major Stock Indices, popular Commodities like Gold and Oil, and a selection of Digital Currencies.",
-    imageSrc: "https://placehold.co/600x400.png",
+    imageSrc: "https://picsum.photos/seed/tradeInstruments/600/400",
     imageHint: "financial instruments diverse",
   },
   {
     icon: SlidersHorizontal,
     title: "Order Types & Execution",
     content: "Utilize a variety of order types to manage your trading strategies, including Market Orders, Limit Orders, Stop Orders, and Trailing Stops. We are committed to providing fast and reliable execution with transparent pricing.",
-    imageSrc: "https://placehold.co/600x401.png",
+    imageSrc: "https://picsum.photos/seed/tradeOrders/600/401",
     imageHint: "trade execution speed",
   },
   {
     icon: Scale,
     title: "Leverage & Margin",
     content: "Access flexible leverage options tailored to your account type and trading experience. Understand margin requirements and how leverage can amplify both potential profits and losses. Always trade responsibly.",
-    imageSrc: "https://placehold.co/600x402.png",
+    imageSrc: "https://picsum.photos/seed/tradeLeverage/600/402",
     imageHint: "leverage balance scale",
   },
   {
     icon: ShieldCheck,
     title: "Risk Management",
     content: "We provide essential risk management tools such as Stop Loss and Take Profit orders to help you manage your exposure. Educational resources are also available to help you understand and mitigate trading risks.",
-    imageSrc: "https://placehold.co/600x403.png",
+    imageSrc: "https://picsum.photos/seed/tradeRisk/600/403",
     imageHint: "security risk shield",
   },
   {
     icon: Zap,
     title: "Trading Conditions",
     content: "Experience competitive spreads, low latency execution, and transparent trading conditions. We aim to provide a fair and efficient trading environment for all our clients, with no hidden fees.",
-    imageSrc: "https://placehold.co/600x404.png",
+    imageSrc: "https://picsum.photos/seed/tradeConditions/600/404",
     imageHint: "trading speed conditions",
   },
   {
@@ -53,7 +54,7 @@ const tradingInfoSections = [
     content: "Choose from a range of account types designed to suit different trading needs, from Beginner to Professional and Corporate. Each account offers specific benefits and minimum deposit requirements.",
     link: "/pricing", // Or directly to a trading plans section if more detailed
     linkLabel: "Compare Account Types",
-    imageSrc: "https://placehold.co/600x405.png",
+    imageSrc: "https://picsum.photos/seed/tradeAccounts/600/405",
     imageHint: "user accounts comparison",
   }
 ];

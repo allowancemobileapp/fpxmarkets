@@ -1,3 +1,4 @@
+
 import GenericPageLayout from "@/components/layout/GenericPageLayout";
 import type { Metadata } from 'next';
 import Image from 'next/image';
@@ -17,7 +18,7 @@ const platforms = [
     title: "FPX WebTrader",
     description: "Access global markets directly from your browser. No downloads required, feature-rich, and user-friendly interface. Perfect for trading on the go or on any device.",
     features: ["Full Market Access", "Advanced Charting Tools", "One-Click Trading", "Secure & Reliable"],
-    imageSrc: "https://placehold.co/600x400.png",
+    imageSrc: "https://picsum.photos/seed/platformWeb/600/400",
     imageHint: "web browser trading",
     ctaLink: "#", // Placeholder
     ctaLabel: "Launch WebTrader"
@@ -27,7 +28,7 @@ const platforms = [
     title: "FPX Mobile Apps (iOS & Android)",
     description: "Trade anytime, anywhere with our native mobile applications. Get real-time quotes, manage your account, and execute trades with ease from your smartphone or tablet.",
     features: ["Full Account Management", "Push Notifications", "Interactive Charts", "Intuitive Interface"],
-    imageSrc: "https://placehold.co/600x401.png",
+    imageSrc: "https://picsum.photos/seed/platformMobile/600/401",
     imageHint: "mobile app trading",
     ctaLink: "#", // Placeholder
     ctaLabel: "Download Mobile App"
@@ -37,7 +38,7 @@ const platforms = [
     title: "FPX Desktop Trader",
     description: "For serious traders requiring maximum performance and customization. Our downloadable desktop platform offers advanced analytical tools and institutional-grade features.",
     features: ["Customizable Layouts", "Algorithmic Trading Support", "Advanced Order Types", "Depth of Market"],
-    imageSrc: "https://placehold.co/600x402.png",
+    imageSrc: "https://picsum.photos/seed/platformDesktop/600/402",
     imageHint: "desktop trading software",
     ctaLink: "#", // Placeholder
     ctaLabel: "Download Desktop"
