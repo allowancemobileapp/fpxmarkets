@@ -1,18 +1,17 @@
 
 import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, getRequestConfig } from 'next-intl/server'; // Corrected import
-import { Geist, Geist_Mono } from 'next/font/google'; // Assuming Geist is preferred
-import '../globals.css'; // Adjusted path to globals.css
+import { getMessages } from 'next-intl/server';
+import { Geist, Geist_Mono } from 'next/font/google';
+import '../globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
-// import LiveChatButton from '@/components/LiveChatButton'; // Removed custom chat button
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
-import Script from 'next/script'; // Import next/script
+import Script from 'next/script'; // Ensure Script is imported
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -36,13 +35,6 @@ export const viewport: Viewport = {
   ],
 };
 
-// Define generateStaticParams if not already defined for i18n
-// export async function generateStaticParams() {
-//   const { locales } = await getRequestConfig();
-//   return locales.map((locale) => ({ locale }));
-// }
-
-
 const AuthLoader = () => (
   <div className="flex h-screen w-full items-center justify-center bg-background">
     <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -57,17 +49,25 @@ interface LocaleLayoutProps {
 
 export default async function LocaleLayout({
   children,
-  params, // Access params directly
+  params,
 }: LocaleLayoutProps) {
-  const locale = params.locale; // Get locale from params
+  const locale = params.locale;
   let messages;
   try {
     messages = await getMessages(locale);
+    console.log(`[LocaleLayout] Successfully loaded messages for locale: ${locale}`);
   } catch (error) {
-    console.error("Failed to load messages for locale:", locale, error);
-    // Fallback to English messages or handle error appropriately
-    // For simplicity, this might lead to an error page if messages are critical
-    // messages = await getMessages('en'); // Example fallback
+    console.error(`[LocaleLayout] Failed to load messages for locale: ${locale}. Error:`, error);
+    // Fallback to English messages if others fail, or handle error page
+    try {
+        console.warn(`[LocaleLayout] Attempting to fallback to 'en' messages for locale: ${locale}`);
+        messages = await getMessages('en');
+    } catch (fallbackError) {
+        console.error(`[LocaleLayout] CRITICAL: Failed to load fallback 'en' messages. Error:`, fallbackError);
+        // If even 'en' fails, messages will be undefined, leading to NextIntlClientProvider error.
+        // Consider rendering an error page or minimal layout here.
+        messages = {}; // Provide empty messages to prevent crash, though translations will fail.
+    }
   }
 
   return (
@@ -87,23 +87,19 @@ export default async function LocaleLayout({
                   {children}
                 </main>
                 <Footer />
-                {/* <LiveChatButton /> Removed custom chat button */}
                 <Toaster />
               </ThemeProvider>
             </NextIntlClientProvider>
           </AuthProvider>
         </Suspense>
-        {/* Smartsupp Live Chat script */}
-        <Script id="smartsupp-config" strategy="lazyOnload">
+        
+        {/* Smartsupp Live Chat script - Combined */}
+        <Script id="smartsupp-combined" strategy="lazyOnload">
           {`
             var _smartsupp = _smartsupp || {};
             _smartsupp.key = '96b3f10540afb961aa0ed8d42c1fd52dedc26a9a';
-          `}
-        </Script>
-        <Script id="smartsupp-loader" strategy="lazyOnload">
-          {`
-            (function(d) {
-              var s,c,o=window.smartsupp=function(){ o._.push(arguments)};o._=[];
+            window.smartsupp||(function(d) {
+              var s,c,o=smartsupp=function(){ o._.push(arguments)};o._=[];
               s=d.getElementsByTagName('script')[0];c=d.createElement('script');
               c.type='text/javascript';c.charset='utf-8';c.async=true;
               c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
