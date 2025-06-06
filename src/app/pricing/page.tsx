@@ -1,3 +1,4 @@
+
 import GenericPageLayout from "@/components/layout/GenericPageLayout";
 import type { Metadata } from 'next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -100,10 +101,10 @@ export default function PricingPage() {
                 <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-xl">
                     <Image
                         src="https://placehold.co/600x400.png"
-                        alt="Transparent pricing concept"
+                        alt="Transparent financial operations"
                         layout="fill"
                         objectFit="cover"
-                        data-ai-hint="transparency finance abstract"
+                        data-ai-hint="financial security transparency"
                         className="opacity-90"
                     />
                 </div>
