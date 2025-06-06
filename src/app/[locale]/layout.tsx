@@ -1,7 +1,7 @@
 
 import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, getRequestConfig } from 'next-intl/server';
 import { Geist, Geist_Mono } from 'next/font/google';
 import '../globals.css';
 import Header from '@/components/layout/Header';
@@ -49,9 +49,9 @@ interface LocaleLayoutProps {
 
 export default async function LocaleLayout({
   children,
-  params,
+  params, // Keep params as an object
 }: LocaleLayoutProps) {
-  const locale = params.locale;
+  const locale = params.locale; // Access locale from params inside the function
   let messages;
   try {
     messages = await getMessages(locale);

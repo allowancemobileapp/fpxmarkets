@@ -7,7 +7,6 @@ import Footer from '@/components/layout/Footer';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
-import LiveChatButton from '@/components/LiveChatButton'; // Import the LiveChatButton
 import { Suspense } from 'react'; // Import Suspense
 import { Loader2 } from 'lucide-react'; // Import a loader for fallback
 
@@ -54,7 +53,7 @@ export default function RootLayout({
                 {children}
               </main>
               <Footer />
-              <LiveChatButton /> {/* Add LiveChatButton here */}
+              {/* <LiveChatButton /> Removed as Smartsupp is used in [locale]/layout.tsx */}
               <Toaster />
             </ThemeProvider>
           </AuthProvider>
