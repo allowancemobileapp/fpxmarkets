@@ -90,8 +90,8 @@ export default async function LocaleLayout({
           </AuthProvider>
         </Suspense>
         
-        {/* Smartsupp Live Chat script - Standard Loader */}
-        <Script id="smartsupp-loader" strategy="lazyOnload">
+        {/* Smartsupp Live Chat script - Changed strategy to afterInteractive */}
+        <Script id="smartsupp-loader" strategy="afterInteractive">
           {`
             var _smartsupp = _smartsupp || {};
             _smartsupp.key = '96b3f10540afb961aa0ed8d42c1fd52dedc26a9a';
