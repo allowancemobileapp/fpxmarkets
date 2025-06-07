@@ -73,6 +73,7 @@ export default async function LocaleLayout({
         {/* Smartsupp Live Chat script - Moved to head with beforeInteractive strategy */}
         <Script id="smartsupp-loader" strategy="beforeInteractive">
           {`
+            console.log('Attempting to initialize Smartsupp script block from next/script.');
             var _smartsupp = _smartsupp || {};
             _smartsupp.key = '96b3f10540afb961aa0ed8d42c1fd52dedc26a9a';
             window.smartsupp||(function(d) {
@@ -112,5 +113,4 @@ export default async function LocaleLayout({
     </html>
   );
 }
-
     
