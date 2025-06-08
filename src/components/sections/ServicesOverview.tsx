@@ -30,8 +30,8 @@ const services: Service[] = [
     icon: Bitcoin,
     title: "Digital Currencies",
     description: "Explore the world of cryptocurrencies with our secure platform.",
-    imageSrc: "https://picsum.photos/seed/serviceCrypto/400/252",
-    imageHint: "crypto coins"
+    imageSrc: "https://placehold.co/400x200.png",
+    imageHint: "bitcoin technology"
   },
   {
     icon: Briefcase,

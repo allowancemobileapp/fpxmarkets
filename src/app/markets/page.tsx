@@ -50,8 +50,8 @@ const marketCategories = [
     title: "Digital Currencies (Cryptocurrencies)",
     description: "Explore the dynamic world of digital currencies. Trade CFDs on popular cryptocurrencies like Bitcoin, Ethereum, and others against major fiat currencies.",
     examples: ["BTC/USD", "ETH/USD", "LTC/USD"],
-    imageSrc: "https://picsum.photos/seed/cryptoMarket/600/404",
-    imageHint: "cryptocurrency coins network"
+    imageSrc: "https://placehold.co/600x400.png",
+    imageHint: "bitcoin chart"
   }
 ];
 
