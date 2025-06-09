@@ -1,6 +1,7 @@
 
 'use client'; // Required for framer-motion components
 
+import { Suspense } from 'react'; // Import Suspense
 import HeroSection from "@/components/sections/HeroSection";
 import ServicesOverview from "@/components/sections/ServicesOverview";
 import MarketInsights from "@/components/sections/MarketInsights";
@@ -8,7 +9,16 @@ import ContactForm from "@/components/sections/ContactForm";
 import { Separator } from "@/components/ui/separator";
 import TradingPlansSection from "@/components/sections/TradingPlansSection";
 import ThreeStepsSection from "@/components/sections/ThreeStepsSection";
-import AnimatedSection from "@/components/AnimatedSection"; // Import the wrapper
+import AnimatedSection from "@/components/AnimatedSection"; 
+import { Loader2 } from 'lucide-react'; // For Suspense fallback
+
+// A simple loader component for Suspense fallback
+const ServiceLoader = () => (
+  <div className="flex flex-col items-center justify-center py-10 text-center">
+    <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+    <p className="text-muted-foreground">Loading services overview...</p>
+  </div>
+);
 
 export default function Home() {
   return (
@@ -24,7 +34,9 @@ export default function Home() {
       <Separator className="my-8 md:my-12" />
       
       <AnimatedSection delay={0.2}>
-        <ServicesOverview />
+        <Suspense fallback={<ServiceLoader />}>
+          <ServicesOverview />
+        </Suspense>
       </AnimatedSection>
       
       <Separator className="my-8 md:my-12" />
