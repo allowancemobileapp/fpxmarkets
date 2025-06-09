@@ -17,7 +17,7 @@ const ServiceLoader = () => (
   </div>
 );
 
-// page.tsx is now a Server Component (no 'use client')
+// page.tsx is now a Server Component (no 'use client' directive)
 export default function Home() {
   return (
     <div className="flex flex-col">
