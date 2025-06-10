@@ -1,14 +1,13 @@
 
 import GenericPageLayout from "@/components/layout/GenericPageLayout";
-// import type { Metadata } from 'next'; // Metadata is fine in Server Components
 import Image from 'next/image';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Added CardContent and CardHeader back
 import { MonitorSmartphone, Globe, Download, Zap, BarChart2, ShieldCheck, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { getImagesByContextTags, type ImageData } from "@/lib/imageService";
 
-export const metadata = { // Static metadata can remain
+export const metadata = {
   title: 'Trading Platforms - FPX Markets',
   description: 'Explore our advanced trading platforms. Features, downloads, and guides for WebTrader, Mobile Apps, and Desktop platforms.',
 };
@@ -20,7 +19,7 @@ interface PlatformData {
   features: string[];
   ctaLink: string;
   ctaLabel: string;
-  contextTag: string; // Key for fetching image from DB
+  contextTag: string;
 }
 
 const platformsData: PlatformData[] = [
@@ -29,7 +28,7 @@ const platformsData: PlatformData[] = [
     title: "FPX WebTrader",
     description: "Access global markets directly from your browser. No downloads required, feature-rich, and user-friendly interface. Perfect for trading on the go or on any device.",
     features: ["Full Market Access", "Advanced Charting Tools", "One-Click Trading", "Secure & Reliable"],
-    ctaLink: "/dashboard", // Link to dashboard, assuming WebTrader is accessed there
+    ctaLink: "/dashboard",
     ctaLabel: "Launch WebTrader",
     contextTag: "platform_web_promo",
   },
@@ -38,7 +37,7 @@ const platformsData: PlatformData[] = [
     title: "FPX Mobile Apps (iOS & Android)",
     description: "Trade anytime, anywhere with our native mobile applications. Get real-time quotes, manage your account, and execute trades with ease from your smartphone or tablet.",
     features: ["Full Account Management", "Push Notifications", "Interactive Charts", "Intuitive Interface"],
-    ctaLink: "#", // Placeholder - update with app store links
+    ctaLink: "#", // Placeholder for app store links
     ctaLabel: "Download Mobile App",
     contextTag: "platform_mobile_promo",
   },
@@ -47,7 +46,7 @@ const platformsData: PlatformData[] = [
     title: "FPX Desktop Trader",
     description: "For serious traders requiring maximum performance and customization. Our downloadable desktop platform offers advanced analytical tools and institutional-grade features.",
     features: ["Customizable Layouts", "Algorithmic Trading Support", "Advanced Order Types", "Depth of Market"],
-    ctaLink: "#", // Placeholder - update with download link
+    ctaLink: "#", // Placeholder for download link
     ctaLabel: "Download Desktop",
     contextTag: "platform_desktop_promo",
   }
@@ -63,7 +62,18 @@ const DEFAULT_PLACEHOLDER_IMAGE_URL = 'https://placehold.co/600x400.png';
 
 export default async function TradingPlatformsPage() {
   const contextTagsToFetch = platformsData.map(p => p.contextTag);
-  const imagesDataMap = await getImagesByContextTags(contextTagsToFetch);
+  console.log('[TradingPlatformsPage] SERVER: Attempting to fetch images for tags:', contextTagsToFetch);
+  let imagesDataMap: Record<string, ImageData> = {};
+  try {
+    imagesDataMap = await getImagesByContextTags(contextTagsToFetch);
+    console.log('[TradingPlatformsPage] SERVER: Successfully fetched imagesDataMap:', JSON.stringify(imagesDataMap, null, 2));
+  } catch (error) {
+    console.error('[TradingPlatformsPage] SERVER: Error fetching imagesDataMap:', error);
+    // Initialize with defaults if fetching fails catastrophically, though imageService should handle its own fallbacks.
+    platformsData.forEach(p => {
+      imagesDataMap[p.contextTag] = { imageUrl: DEFAULT_PLACEHOLDER_IMAGE_URL, altText: `${p.title} (fetch error fallback)` };
+    });
+  }
 
   return (
     <GenericPageLayout
@@ -72,20 +82,35 @@ export default async function TradingPlatformsPage() {
     >
       <div className="space-y-12">
         {platformsData.map((platform, index) => {
-          const imageOnLeft = index % 2 === 0; // Alternates: 0=left, 1=right, 2=left
-          const dbImage = imagesDataMap[platform.contextTag] || { imageUrl: DEFAULT_PLACEHOLDER_IMAGE_URL, altText: `${platform.title} placeholder image` };
+          const imageOnLeft = index % 2 === 0;
+          
+          const dbImageObject = imagesDataMap[platform.contextTag];
+          
+          // Ensure dbImageObject is not undefined and has the necessary properties
+          // The imageService should always return an object with imageUrl and altText, even if it's a default.
+          const imageUrl = dbImageObject?.imageUrl || DEFAULT_PLACEHOLDER_IMAGE_URL;
+          const altText = dbImageObject?.altText || `${platform.title} default placeholder`;
+
+          console.log(`[TradingPlatformsPage] SERVER: Rendering platform "${platform.title}" (context: ${platform.contextTag}). Image URL: ${imageUrl}, Alt: ${altText}`);
+
           return (
             <Card key={platform.title} className="shadow-xl overflow-hidden">
               <div className="grid md:grid-cols-2 gap-0 items-center">
                 {/* Image Column */}
                 <div className={`relative h-64 md:h-[450px] w-full ${imageOnLeft ? 'md:order-first' : 'md:order-last'}`}>
-                  <Image
-                    src={dbImage.imageUrl!}
-                    alt={dbImage.altText!}
-                    layout="fill"
-                    objectFit="cover"
-                    priority={index < 2} // Prioritize loading for the first two images
-                  />
+                  {imageUrl ? (
+                    <Image
+                      src={imageUrl}
+                      alt={altText}
+                      layout="fill"
+                      objectFit="cover"
+                      priority={index < 2} // Prioritize loading for the first two images
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <p className="text-muted-foreground">Image not available for {platform.title}</p>
+                    </div>
+                  )}
                 </div>
                 {/* Text Content Column */}
                 <div className={`p-6 sm:p-10 ${imageOnLeft ? 'md:order-last' : 'md:order-first'}`}>
