@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Target, Zap, Handshake, ShieldCheck, Users, TrendingUp, Scale, Lightbulb } from "lucide-react";
+import { getImagesByContextTags, type ImageData } from "@/lib/imageService";
 
 export const metadata: Metadata = {
   title: 'About FPX Markets - Our Mission, Values, and Story',
@@ -26,7 +27,15 @@ const whyChooseUs = [
     { icon: Lightbulb, title: "Advanced Trading Tools", description: "Utilize sophisticated charting, analytics, and risk management tools." },
 ];
 
-export default function AboutUsPage() {
+const DEFAULT_PLACEHOLDER_IMAGE_URL = 'https://placehold.co/600x400.png';
+
+export default async function AboutUsPage() {
+  const contextTagsToFetch = ['about_page_mission_vision', 'about_page_our_story'];
+  const imagesData = await getImagesByContextTags(contextTagsToFetch);
+
+  const missionVisionImage = imagesData['about_page_mission_vision'] || { imageUrl: DEFAULT_PLACEHOLDER_IMAGE_URL, altText: 'Global financial network placeholder' };
+  const ourStoryImage = imagesData['about_page_our_story'] || { imageUrl: DEFAULT_PLACEHOLDER_IMAGE_URL, altText: 'FPX Markets team working placeholder' };
+
   return (
     <GenericPageLayout
       title="About FPX Markets"
@@ -47,11 +56,10 @@ export default function AboutUsPage() {
             </div>
             <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-xl">
               <Image
-                src="https://picsum.photos/seed/aboutGlobalNet/600/400"
-                alt="Global financial network"
+                src={missionVisionImage.imageUrl!}
+                alt={missionVisionImage.altText!}
                 layout="fill"
                 objectFit="cover"
-                data-ai-hint="global network finance"
                 className="opacity-90"
               />
             </div>
@@ -84,11 +92,10 @@ export default function AboutUsPage() {
            <div className="grid md:grid-cols-2 gap-8 items-center">
              <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-xl order-last md:order-first">
               <Image
-                src="https://picsum.photos/seed/aboutTeamWork/600/401"
-                alt="FPX Markets team working"
+                src={ourStoryImage.imageUrl!}
+                alt={ourStoryImage.altText!}
                 layout="fill"
                 objectFit="cover"
-                data-ai-hint="team collaboration office"
                 className="opacity-90"
               />
             </div>
