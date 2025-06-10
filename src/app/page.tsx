@@ -33,7 +33,7 @@ export default function Home() {
 
       <ClientAnimator delay={0.2}>
         <Suspense fallback={<ServiceLoader />}>
-          <ServicesOverview /> {/* Now correctly rendered by a Server Component parent */}
+          <ServicesOverview />
         </Suspense>
       </ClientAnimator>
 
