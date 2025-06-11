@@ -7,6 +7,7 @@ import { DollarSign, Layers, Shield, Info, Percent, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from 'next/image';
+import { getImagesByContextTags, type ImageData } from "@/lib/imageService";
 
 export const metadata: Metadata = {
   title: 'Pricing & Spreads - FPX Markets',
@@ -28,7 +29,22 @@ const feeInfo = [
     { icon: Info, title: "Transparent Rollover Rates", description: "Overnight financing (swap) rates are clearly displayed within our trading platforms." },
 ];
 
-export default function PricingPage() {
+const DEFAULT_PLACEHOLDER_IMAGE_URL = 'https://placehold.co/600x400.png'; // Fallback, though imageService should provide one
+
+export default async function PricingPage() {
+  const contextTagForTransparencyImage = 'pricing_transparency_promo';
+  console.log(`[PricingPage] SERVER: Requesting image for contextTag: ${contextTagForTransparencyImage}`);
+
+  let transparencyImageData: ImageData;
+  try {
+    const imagesDataMap = await getImagesByContextTags([contextTagForTransparencyImage]);
+    transparencyImageData = imagesDataMap[contextTagForTransparencyImage]; // imageService provides default if not found
+    console.log(`[PricingPage] SERVER: Received transparencyImageData:`, JSON.stringify(transparencyImageData));
+  } catch (error) {
+    console.error(`[PricingPage] SERVER: Error fetching image for ${contextTagForTransparencyImage}:`, error);
+    transparencyImageData = { imageUrl: DEFAULT_PLACEHOLDER_IMAGE_URL, altText: 'Transparent financial operations placeholder (error)' };
+  }
+
   return (
     <GenericPageLayout
       title="Transparent & Competitive Pricing"
@@ -100,12 +116,12 @@ export default function PricingPage() {
                 </div>
                 <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-xl">
                     <Image
-                        src="https://picsum.photos/seed/pricingTransparency/600/400"
-                        alt="Transparent financial operations"
+                        src={transparencyImageData.imageUrl}
+                        alt={transparencyImageData.altText}
                         layout="fill"
                         objectFit="cover"
-                        data-ai-hint="financial security transparency"
-                        className="opacity-90"
+                        className="opacity-90 bg-muted"
+                        priority
                     />
                 </div>
             </div>

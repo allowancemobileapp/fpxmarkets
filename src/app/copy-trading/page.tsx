@@ -6,44 +6,66 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Users, Copy, TrendingUp, CheckCircle, BarChartBig } from "lucide-react";
+import { getImagesByContextTags, type ImageData } from "@/lib/imageService";
 
 export const metadata: Metadata = {
   title: 'Copy Trading - FPX Markets',
   description: 'Discover the power of Copy Trading with FPX Markets. Replicate the strategies of successful traders automatically and enhance your portfolio.',
 };
 
-const copyTradingFeatures = [
+interface CopyTradingFeature {
+  icon: React.ElementType;
+  title: string;
+  content: string;
+  contextTag: string; // To fetch image from DB
+  // imageSrc and imageHint are removed as we'll use DB images
+}
+
+const copyTradingFeaturesData: CopyTradingFeature[] = [
   {
     icon: Users,
     title: "Follow Experienced Traders",
     content: "Browse a curated list of successful traders, review their performance statistics, risk profiles, and trading styles before deciding to copy them.",
-    imageSrc: "https://picsum.photos/seed/copyTraderProfiles/600/400",
-    imageHint: "trader profiles selection"
+    contextTag: "copy_trader_profiles_promo",
   },
   {
     icon: Copy,
     title: "Automated Strategy Replication",
     content: "Once you choose a trader to copy, our platform automatically replicates their trades in your account in real-time, proportionally to your allocated funds.",
-    imageSrc: "https://picsum.photos/seed/copyAutoTrading/600/401",
-    imageHint: "automated trading process"
+    contextTag: "copy_auto_trading_promo",
   },
   {
     icon: TrendingUp,
     title: "Diversify Your Portfolio",
     content: "Copy trading can be an excellent way to diversify your investment strategies by tapping into the expertise of multiple traders across different markets.",
-    imageSrc: "https://picsum.photos/seed/copyPortfolioDiv/600/402",
-    imageHint: "portfolio diversification chart"
+    contextTag: "copy_portfolio_div_promo",
   },
   {
     icon: BarChartBig,
     title: "Transparent Performance",
     content: "Monitor the performance of your copied trades directly from your dashboard. Get detailed reports and insights into how your copied strategies are performing.",
-    imageSrc: "https://picsum.photos/seed/copyAnalytics/600/403",
-    imageHint: "performance analytics dashboard"
+    contextTag: "copy_analytics_promo",
   }
 ];
 
-export default function CopyTradingPage() {
+const DEFAULT_PLACEHOLDER_IMAGE_URL = 'https://placehold.co/600x400.png'; // Fallback, though imageService should provide one
+
+export default async function CopyTradingPage() {
+  const contextTagsToFetch = copyTradingFeaturesData.map(feature => feature.contextTag);
+  console.log(`[CopyTradingPage] SERVER: Requesting images for contextTags: ${JSON.stringify(contextTagsToFetch)}`);
+  
+  let imagesDataMap: Record<string, ImageData> = {};
+  try {
+    imagesDataMap = await getImagesByContextTags(contextTagsToFetch);
+    console.log(`[CopyTradingPage] SERVER: Received imagesDataMap from imageService:`, JSON.stringify(imagesDataMap, null, 2));
+  } catch (error) {
+    console.error(`[CopyTradingPage] SERVER: Error fetching imagesDataMap from imageService:`, error);
+    // Initialize with defaults for all features if fetching fails
+    copyTradingFeaturesData.forEach(feature => {
+      imagesDataMap[feature.contextTag] = { imageUrl: DEFAULT_PLACEHOLDER_IMAGE_URL, altText: `${feature.title} placeholder (service error)` };
+    });
+  }
+
   return (
     <GenericPageLayout
       title="Unlock Copy Trading Potential"
@@ -53,29 +75,33 @@ export default function CopyTradingPage() {
         <section>
           <h2 className="text-2xl sm:text-3xl font-semibold text-primary mb-8 text-center">How Copy Trading Works at FPX Markets</h2>
           <div className="grid md:grid-cols-2 gap-8">
-            {copyTradingFeatures.slice(0, 2).map((feature, index) => (
-              <Card key={feature.title} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <div className="relative h-56 w-full">
-                  <Image
-                    src={feature.imageSrc}
-                    alt={feature.title}
-                    layout="fill"
-                    objectFit="cover"
-                    data-ai-hint={feature.imageHint}
-                    className="rounded-t-lg"
-                  />
-                </div>
-                <CardHeader>
-                  <div className="flex items-center mb-2">
-                    <feature.icon className="h-8 w-8 text-accent mr-3" />
-                    <CardTitle className="text-xl text-primary">{feature.title}</CardTitle>
+            {copyTradingFeaturesData.slice(0, 2).map((feature) => {
+              const imageData = imagesDataMap[feature.contextTag]; // imageService provides default if not found
+              console.log(`[CopyTradingPage] SERVER: For feature "${feature.title}" (context: ${feature.contextTag}) - Using Image URL: "${imageData.imageUrl}", Alt: "${imageData.altText}"`);
+              return (
+                <Card key={feature.title} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+                  <div className="relative h-56 w-full">
+                    <Image
+                      src={imageData.imageUrl}
+                      alt={imageData.altText}
+                      layout="fill"
+                      objectFit="cover"
+                      className="rounded-t-lg bg-muted"
+                      priority // Prioritize first two images
+                    />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">{feature.content}</p>
-                </CardContent>
-              </Card>
-            ))}
+                  <CardHeader>
+                    <div className="flex items-center mb-2">
+                      <feature.icon className="h-8 w-8 text-accent mr-3" />
+                      <CardTitle className="text-xl text-primary">{feature.title}</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">{feature.content}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </section>
 
@@ -124,29 +150,32 @@ export default function CopyTradingPage() {
 
         <section>
           <div className="grid md:grid-cols-2 gap-8">
-            {copyTradingFeatures.slice(2, 4).map((feature, index) => (
-              <Card key={feature.title} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-                 <div className="relative h-56 w-full">
-                  <Image
-                    src={feature.imageSrc}
-                    alt={feature.title}
-                    layout="fill"
-                    objectFit="cover"
-                    data-ai-hint={feature.imageHint}
-                    className="rounded-t-lg"
-                  />
-                </div>
-                <CardHeader>
-                 <div className="flex items-center mb-2">
-                    <feature.icon className="h-8 w-8 text-accent mr-3" />
-                    <CardTitle className="text-xl text-primary">{feature.title}</CardTitle>
+            {copyTradingFeaturesData.slice(2, 4).map((feature) => {
+              const imageData = imagesDataMap[feature.contextTag]; // imageService provides default if not found
+              console.log(`[CopyTradingPage] SERVER: For feature "${feature.title}" (context: ${feature.contextTag}) - Using Image URL: "${imageData.imageUrl}", Alt: "${imageData.altText}"`);
+              return (
+                <Card key={feature.title} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+                  <div className="relative h-56 w-full">
+                    <Image
+                      src={imageData.imageUrl}
+                      alt={imageData.altText}
+                      layout="fill"
+                      objectFit="cover"
+                      className="rounded-t-lg bg-muted"
+                    />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">{feature.content}</p>
-                </CardContent>
-              </Card>
-            ))}
+                  <CardHeader>
+                    <div className="flex items-center mb-2">
+                      <feature.icon className="h-8 w-8 text-accent mr-3" />
+                      <CardTitle className="text-xl text-primary">{feature.title}</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">{feature.content}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </section>
 
