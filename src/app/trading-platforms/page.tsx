@@ -1,13 +1,14 @@
 
+// src/app/trading-platforms/page.tsx
 import GenericPageLayout from "@/components/layout/GenericPageLayout";
 import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MonitorSmartphone, Globe, Download, Zap, BarChart2, ShieldCheck, CheckCircle } from "lucide-react";
 import Link from "next/link";
-import { getImagesByContextTags, type ImageData } from "@/lib/imageService";
+import { getImagesByContextTags, type ImageData } from "@/lib/imageService"; // Ensure this path is correct
 
-export const metadata = {
+export const metadata = { // This is fine for a Server Component
   title: 'Trading Platforms - FPX Markets',
   description: 'Explore our advanced trading platforms. Features, downloads, and guides for WebTrader, Mobile Apps, and Desktop platforms.',
 };
@@ -30,7 +31,7 @@ const platformsData: PlatformDefinition[] = [
     features: ["Full Market Access", "Advanced Charting Tools", "One-Click Trading", "Secure & Reliable"],
     ctaLink: "/dashboard", // Assuming dashboard is the webtrader or leads to it
     ctaLabel: "Launch WebTrader",
-    contextTag: "platform_web_promo",
+    contextTag: "platform_web_promo", // This is the tag for the WebTrader image
   },
   {
     icon: MonitorSmartphone,
@@ -60,19 +61,22 @@ const platformBenefits = [
 
 export default async function TradingPlatformsPage() {
   const contextTagsToFetch = platformsData.map(p => p.contextTag);
-  console.log('[TradingPlatformsPage] SERVER: Defined contextTagsToFetch:', JSON.stringify(contextTagsToFetch));
+  console.log('[TradingPlatformsPage] SERVER: Requesting images for contextTags:', JSON.stringify(contextTagsToFetch));
 
   let imagesDataMap: Record<string, ImageData> = {};
   try {
     imagesDataMap = await getImagesByContextTags(contextTagsToFetch);
-    console.log('[TradingPlatformsPage] SERVER: Successfully fetched imagesDataMap:', JSON.stringify(imagesDataMap, null, 2));
+    console.log('[TradingPlatformsPage] SERVER: Received imagesDataMap from imageService:', JSON.stringify(imagesDataMap, null, 2));
   } catch (error) {
     console.error('[TradingPlatformsPage] SERVER: Error fetching imagesDataMap from imageService:', error);
-    // Initialize with defaults if fetching fails so the page doesn't break and uses placeholders from service.
-    // The imageService itself now robustly returns placeholders.
+    // Initialize with defaults for all platforms if fetching fails,
+    // imageService itself should provide placeholders, but this is an extra safety net.
     platformsData.forEach(p => {
-      if (!imagesDataMap[p.contextTag]) { // Ensure entry if service somehow errored badly
-        imagesDataMap[p.contextTag] = { imageUrl: 'https://placehold.co/600x400.png', altText: `${p.title} (service error fallback)` };
+      if (!imagesDataMap[p.contextTag]) {
+        // The imageService should always return a valid object with placeholders,
+        // but this covers extreme cases or if the service itself threw an unhandled error.
+        imagesDataMap[p.contextTag] = { imageUrl: 'https://placehold.co/600x450.png', altText: `${p.title} (service error fallback)` };
+        console.warn(`[TradingPlatformsPage] SERVER: Fallback for ${p.contextTag} due to imageService error.`);
       }
     });
   }
@@ -86,27 +90,37 @@ export default async function TradingPlatformsPage() {
         {platformsData.map((platform, index) => {
           const imageOnLeft = index % 2 === 0;
           
-          const imageData = imagesDataMap[platform.contextTag]; // Service now guarantees this has valid imageUrl/altText
+          // imageService now guarantees imageData.imageUrl and imageData.altText are valid strings (either DB or placeholder)
+          const imageData = imagesDataMap[platform.contextTag]; // imageService guarantees this entry exists with valid placeholders if DB fails.
           
-          // These will always be strings due to the robust imageService
           const imageUrl = imageData.imageUrl; 
           const altText = imageData.altText;
 
-          console.log(`[TradingPlatformsPage] SERVER: For platform "${platform.title}" (context: ${platform.contextTag}) - Using Image URL: "${imageUrl}", Alt: "${altText}"`);
+          console.log(`[TradingPlatformsPage] SERVER: For platform "${platform.title}" (context: ${platform.contextTag}) - Attempting to render Image URL: "${imageUrl}", Alt: "${altText}"`);
+          
+          if (!imageUrl || typeof imageUrl !== 'string' || imageUrl.trim() === '') {
+            console.error(`[TradingPlatformsPage] SERVER: CRITICAL - Invalid imageUrl for ${platform.title} ('${imageUrl}'). This should not happen if imageService is working correctly.`);
+          }
 
           return (
             <Card key={platform.title} className="shadow-xl overflow-hidden">
               <div className="grid md:grid-cols-2 gap-0 items-center">
                 {/* Image Column */}
                 <div className={`relative h-64 md:h-[450px] w-full ${imageOnLeft ? 'md:order-first' : 'md:order-last'}`}>
-                  <Image
-                    src={imageUrl} // Directly use, should always be valid
-                    alt={altText}    // Directly use
-                    layout="fill"
-                    objectFit="cover"
-                    priority={index < 2} 
-                    className="bg-muted" // Add a background color for loading/error states
-                  />
+                  {imageUrl ? (
+                    <Image
+                      src={imageUrl}
+                      alt={altText}
+                      layout="fill"
+                      objectFit="cover"
+                      priority={index < 2} // Prioritize loading for the first two images
+                      className="bg-muted" // Background for during loading
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <p className="text-muted-foreground">Image not available</p>
+                    </div>
+                  )}
                 </div>
                 {/* Text Content Column */}
                 <div className={`p-6 sm:p-10 ${imageOnLeft ? 'md:order-last' : 'md:order-first'}`}>
