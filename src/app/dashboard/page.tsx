@@ -8,8 +8,10 @@ import Link from 'next/link';
 import { DollarSign, TrendingUp, AlertTriangle, CheckCircle, Clock, Copy, Users, BarChartBig, UserCircle, Loader2, ArrowDownCircle, ArrowUpCircle, MinusCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { useCopyTrading } from '@/contexts/CopyTradingContext'; // Import the context hook
-import { mockTraders, type MockTrader } from '@/config/mockTraders'; // Import mockTraders data and type
+import { useCopyTrading } from '@/contexts/CopyTradingContext';
+import { mockTraders, type MockTrader } from '@/config/mockTraders';
+import { getSpecificImageByContextTag } from '@/lib/actions'; // Import the new server action
+import type { ImageData } from '@/lib/imageService'; // Import ImageData type
 
 interface DashboardData {
   totalAssets: number;
@@ -52,14 +54,17 @@ const StatCard = ({ title, value, icon: Icon, unit = '$', color = 'text-primary'
 
 export default function DashboardHomePage() {
   const { appUser, isLoading: authIsLoading } = useAuth();
-  const { copiedTraderIds, getCopiedTradersCount } = useCopyTrading(); // Use context
+  const { copiedTraderIds, getCopiedTradersCount } = useCopyTrading();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isFetchingDashboardData, setIsFetchingDashboardData] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [activeCopiedTraders, setActiveCopiedTraders] = useState<MockTrader[]>([]);
 
+  // State for the dashboard promo image
+  const [promoImageData, setPromoImageData] = useState<ImageData | null>(null);
+  const [isLoadingPromoImage, setIsLoadingPromoImage] = useState(true);
+
   useEffect(() => {
-    // Filter mockTraders to get the details of copied traders
     const tradersBeingCopied = mockTraders.filter(trader => copiedTraderIds.has(trader.id));
     setActiveCopiedTraders(tradersBeingCopied);
   }, [copiedTraderIds]);
@@ -93,6 +98,27 @@ export default function DashboardHomePage() {
     }
   }, [appUser, dashboardData, isFetchingDashboardData]);
 
+  // Fetch the dashboard promo image
+  useEffect(() => {
+    const fetchPromoImage = async () => {
+      console.log('[DashboardHomePage] CLIENT: Attempting to fetch promo image with tag: dashboard_article_promo');
+      setIsLoadingPromoImage(true);
+      try {
+        const imageData = await getSpecificImageByContextTag('dashboard_article_promo');
+        console.log('[DashboardHomePage] CLIENT: Promo image data fetched:', imageData);
+        setPromoImageData(imageData);
+      } catch (error) {
+        console.error('[DashboardHomePage] CLIENT: Error fetching promo image:', error);
+        // The action itself returns a placeholder on error, so promoImageData will still be set
+        // setPromoImageData({ imageUrl: 'https://placehold.co/1200x400.png', altText: 'Error loading promo image' });
+      } finally {
+        setIsLoadingPromoImage(false);
+      }
+    };
+    fetchPromoImage();
+  }, []);
+
+
   if (authIsLoading) {
     return (
       <div className="flex h-[calc(100vh-10rem)] items-center justify-center">
@@ -119,7 +145,7 @@ export default function DashboardHomePage() {
       </div>
     );
   }
-  
+
   if (fetchError && !dashboardData) {
     return (
       <div className="flex h-[calc(100vh-10rem)] items-center justify-center text-center">
@@ -128,7 +154,7 @@ export default function DashboardHomePage() {
       </div>
     );
   }
-  
+
   const dataToDisplay = dashboardData;
 
   return (
@@ -168,15 +194,21 @@ export default function DashboardHomePage() {
       )}
 
        <Card className="overflow-hidden shadow-lg">
-        <div className="relative h-56 sm:h-72 md:h-80 w-full">
-          <Image
-            src="https://placehold.co/1200x400.png"
-            alt="Financial Growth Chart"
-            layout="fill"
-            objectFit="cover"
-            className="opacity-80"
-            data-ai-hint="financial growth technology"
-          />
+        <div className="relative h-56 sm:h-72 md:h-80 w-full bg-muted/30">
+          {isLoadingPromoImage || !promoImageData ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            </div>
+          ) : (
+            <Image
+              src={promoImageData.imageUrl}
+              alt={promoImageData.altText}
+              layout="fill"
+              objectFit="cover"
+              className="opacity-80"
+              priority // Consider making this conditional or false if it's not critical for LCP
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-6 sm:p-8 flex flex-col justify-end">
             <h2 className="text-2xl sm:text-3xl font-semibold text-white">Plan Your Financial Future</h2>
             <p className="mt-2 text-base sm:text-lg text-gray-200 max-w-2xl">
