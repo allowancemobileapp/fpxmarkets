@@ -2,7 +2,7 @@
 import GenericPageLayout from "@/components/layout/GenericPageLayout";
 import Image from 'next/image';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Added CardContent and CardHeader back
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MonitorSmartphone, Globe, Download, Zap, BarChart2, ShieldCheck, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { getImagesByContextTags, type ImageData } from "@/lib/imageService";
@@ -63,15 +63,16 @@ const DEFAULT_PLACEHOLDER_IMAGE_URL = 'https://placehold.co/600x400.png';
 export default async function TradingPlatformsPage() {
   const contextTagsToFetch = platformsData.map(p => p.contextTag);
   console.log('[TradingPlatformsPage] SERVER: Attempting to fetch images for tags:', contextTagsToFetch);
+
   let imagesDataMap: Record<string, ImageData> = {};
   try {
     imagesDataMap = await getImagesByContextTags(contextTagsToFetch);
     console.log('[TradingPlatformsPage] SERVER: Successfully fetched imagesDataMap:', JSON.stringify(imagesDataMap, null, 2));
   } catch (error) {
-    console.error('[TradingPlatformsPage] SERVER: Error fetching imagesDataMap:', error);
-    // Initialize with defaults if fetching fails catastrophically, though imageService should handle its own fallbacks.
+    console.error('[TradingPlatformsPage] SERVER: Error fetching imagesDataMap from imageService:', error);
+    // Initialize with defaults if fetching fails so the page doesn't break
     platformsData.forEach(p => {
-      imagesDataMap[p.contextTag] = { imageUrl: DEFAULT_PLACEHOLDER_IMAGE_URL, altText: `${p.title} (fetch error fallback)` };
+      imagesDataMap[p.contextTag] = { imageUrl: DEFAULT_PLACEHOLDER_IMAGE_URL, altText: `${p.title} (service error fallback)` };
     });
   }
 
@@ -84,14 +85,13 @@ export default async function TradingPlatformsPage() {
         {platformsData.map((platform, index) => {
           const imageOnLeft = index % 2 === 0;
           
-          const dbImageObject = imagesDataMap[platform.contextTag];
+          // Get image data for the current platform, with robust fallbacks
+          const dbImageObject = imagesDataMap[platform.contextTag] || { imageUrl: DEFAULT_PLACEHOLDER_IMAGE_URL, altText: `${platform.title} (tag not found fallback)` };
           
-          // Ensure dbImageObject is not undefined and has the necessary properties
-          // The imageService should always return an object with imageUrl and altText, even if it's a default.
-          const imageUrl = dbImageObject?.imageUrl || DEFAULT_PLACEHOLDER_IMAGE_URL;
-          const altText = dbImageObject?.altText || `${platform.title} default placeholder`;
+          const imageUrl = dbImageObject.imageUrl || DEFAULT_PLACEHOLDER_IMAGE_URL;
+          const altText = dbImageObject.altText || `${platform.title} placeholder image`;
 
-          console.log(`[TradingPlatformsPage] SERVER: Rendering platform "${platform.title}" (context: ${platform.contextTag}). Image URL: ${imageUrl}, Alt: ${altText}`);
+          console.log(`[TradingPlatformsPage] SERVER: For platform "${platform.title}" (context: ${platform.contextTag}) - Resolved Image URL: ${imageUrl}, Alt: ${altText}`);
 
           return (
             <Card key={platform.title} className="shadow-xl overflow-hidden">
@@ -104,11 +104,11 @@ export default async function TradingPlatformsPage() {
                       alt={altText}
                       layout="fill"
                       objectFit="cover"
-                      priority={index < 2} // Prioritize loading for the first two images
+                      priority={index < 2} 
                     />
                   ) : (
                     <div className="w-full h-full bg-muted flex items-center justify-center">
-                      <p className="text-muted-foreground">Image not available for {platform.title}</p>
+                      <p className="text-muted-foreground">Image loading for {platform.title}...</p>
                     </div>
                   )}
                 </div>
