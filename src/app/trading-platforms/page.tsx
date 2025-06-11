@@ -12,7 +12,7 @@ export const metadata = {
   description: 'Explore our advanced trading platforms. Features, downloads, and guides for WebTrader, Mobile Apps, and Desktop platforms.',
 };
 
-interface PlatformData {
+interface PlatformDefinition {
   icon: React.ElementType;
   title: string;
   description: string;
@@ -22,13 +22,13 @@ interface PlatformData {
   contextTag: string;
 }
 
-const platformsData: PlatformData[] = [
+const platformsData: PlatformDefinition[] = [
   {
     icon: Globe,
     title: "FPX WebTrader",
     description: "Access global markets directly from your browser. No downloads required, feature-rich, and user-friendly interface. Perfect for trading on the go or on any device.",
     features: ["Full Market Access", "Advanced Charting Tools", "One-Click Trading", "Secure & Reliable"],
-    ctaLink: "/dashboard",
+    ctaLink: "/dashboard", // Assuming dashboard is the webtrader or leads to it
     ctaLabel: "Launch WebTrader",
     contextTag: "platform_web_promo",
   },
@@ -58,11 +58,9 @@ const platformBenefits = [
   { icon: ShieldCheck, title: "Enhanced Security", description: "Trade with confidence thanks to robust security measures and data encryption." },
 ];
 
-const DEFAULT_PLACEHOLDER_IMAGE_URL = 'https://placehold.co/600x400.png';
-
 export default async function TradingPlatformsPage() {
   const contextTagsToFetch = platformsData.map(p => p.contextTag);
-  console.log('[TradingPlatformsPage] SERVER: Attempting to fetch images for tags:', contextTagsToFetch);
+  console.log('[TradingPlatformsPage] SERVER: Defined contextTagsToFetch:', JSON.stringify(contextTagsToFetch));
 
   let imagesDataMap: Record<string, ImageData> = {};
   try {
@@ -70,9 +68,12 @@ export default async function TradingPlatformsPage() {
     console.log('[TradingPlatformsPage] SERVER: Successfully fetched imagesDataMap:', JSON.stringify(imagesDataMap, null, 2));
   } catch (error) {
     console.error('[TradingPlatformsPage] SERVER: Error fetching imagesDataMap from imageService:', error);
-    // Initialize with defaults if fetching fails so the page doesn't break
+    // Initialize with defaults if fetching fails so the page doesn't break and uses placeholders from service.
+    // The imageService itself now robustly returns placeholders.
     platformsData.forEach(p => {
-      imagesDataMap[p.contextTag] = { imageUrl: DEFAULT_PLACEHOLDER_IMAGE_URL, altText: `${p.title} (service error fallback)` };
+      if (!imagesDataMap[p.contextTag]) { // Ensure entry if service somehow errored badly
+        imagesDataMap[p.contextTag] = { imageUrl: 'https://placehold.co/600x400.png', altText: `${p.title} (service error fallback)` };
+      }
     });
   }
 
@@ -85,32 +86,27 @@ export default async function TradingPlatformsPage() {
         {platformsData.map((platform, index) => {
           const imageOnLeft = index % 2 === 0;
           
-          // Get image data for the current platform, with robust fallbacks
-          const dbImageObject = imagesDataMap[platform.contextTag] || { imageUrl: DEFAULT_PLACEHOLDER_IMAGE_URL, altText: `${platform.title} (tag not found fallback)` };
+          const imageData = imagesDataMap[platform.contextTag]; // Service now guarantees this has valid imageUrl/altText
           
-          const imageUrl = dbImageObject.imageUrl || DEFAULT_PLACEHOLDER_IMAGE_URL;
-          const altText = dbImageObject.altText || `${platform.title} placeholder image`;
+          // These will always be strings due to the robust imageService
+          const imageUrl = imageData.imageUrl; 
+          const altText = imageData.altText;
 
-          console.log(`[TradingPlatformsPage] SERVER: For platform "${platform.title}" (context: ${platform.contextTag}) - Resolved Image URL: ${imageUrl}, Alt: ${altText}`);
+          console.log(`[TradingPlatformsPage] SERVER: For platform "${platform.title}" (context: ${platform.contextTag}) - Using Image URL: "${imageUrl}", Alt: "${altText}"`);
 
           return (
             <Card key={platform.title} className="shadow-xl overflow-hidden">
               <div className="grid md:grid-cols-2 gap-0 items-center">
                 {/* Image Column */}
                 <div className={`relative h-64 md:h-[450px] w-full ${imageOnLeft ? 'md:order-first' : 'md:order-last'}`}>
-                  {imageUrl ? (
-                    <Image
-                      src={imageUrl}
-                      alt={altText}
-                      layout="fill"
-                      objectFit="cover"
-                      priority={index < 2} 
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-muted flex items-center justify-center">
-                      <p className="text-muted-foreground">Image loading for {platform.title}...</p>
-                    </div>
-                  )}
+                  <Image
+                    src={imageUrl} // Directly use, should always be valid
+                    alt={altText}    // Directly use
+                    layout="fill"
+                    objectFit="cover"
+                    priority={index < 2} 
+                    className="bg-muted" // Add a background color for loading/error states
+                  />
                 </div>
                 {/* Text Content Column */}
                 <div className={`p-6 sm:p-10 ${imageOnLeft ? 'md:order-last' : 'md:order-first'}`}>
