@@ -73,7 +73,7 @@ export default async function LocaleLayout({
         {/* Smartsupp Live Chat script - Moved to head with beforeInteractive strategy */}
         <Script id="smartsupp-loader" strategy="beforeInteractive">
           {`
-            console.log('Attempting to initialize Smartsupp script block from next/script.');
+            console.log('[FPX Markets - Smartsupp] Attempting to initialize Smartsupp script block from next/script. Key: 96b3f10540afb961aa0ed8d42c1fd52dedc26a9a');
             var _smartsupp = _smartsupp || {};
             _smartsupp.key = '96b3f10540afb961aa0ed8d42c1fd52dedc26a9a';
             window.smartsupp||(function(d) {
@@ -82,6 +82,7 @@ export default async function LocaleLayout({
               c.type='text/javascript';c.charset='utf-8';c.async=true;
               c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
             })(document);
+            console.log('[FPX Markets - Smartsupp] Smartsupp script loaded and executed by next/script.');
           `}
         </Script>
         <noscript>
