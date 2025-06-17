@@ -2,7 +2,7 @@
 // src/app/api/user/profile/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db'; 
-import type { AppUser, UpdateProfilePayload } from '@/lib/types';
+import type { AppUser, UpdateProfilePayload } from '@/lib/types'; // UpdateProfilePayload will need profile_image_url if we add client-side editing for it
 
 console.log('[API /user/profile/route.ts] SERVER DIAGNOSTIC: Module file is being loaded and evaluated by Next.js.');
 
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       `SELECT 
          u.id, u.firebase_auth_uid, u.email, u.username, u.first_name, u.last_name, 
          u.phone_number, u.country_code, u.profile_completed_at, u.pin_setup_completed_at,
-         u.is_active, u.is_email_verified, u.created_at, u.updated_at,
+         u.is_active, u.is_email_verified, u.created_at, u.updated_at, u.profile_image_url,
          tp.name as account_type 
        FROM users u
        LEFT JOIN trading_plans tp ON u.trading_plan_id = tp.id
@@ -55,18 +55,19 @@ export async function PUT(request: NextRequest) {
   try {
     payload = await request.json();
     // TODO: Add Zod validation for UpdateProfilePayload if not done at call site
+    // For now, assuming payload matches UpdateProfilePayload structure from types.ts
   } catch (error) {
     console.error('[API /user/profile PUT] SERVER: Invalid JSON payload:', error);
     return NextResponse.json({ message: 'Invalid JSON payload' }, { status: 400 });
   }
 
-  const { firebaseAuthUid, firstName, lastName, username, phoneNumber, country_code } = payload;
+  const { firebaseAuthUid, firstName, lastName, username, phoneNumber, country_code, profile_image_url } = payload;
 
   if (!firebaseAuthUid) {
     console.log('[API /user/profile PUT] SERVER: Missing firebaseAuthUid in payload.');
     return NextResponse.json({ message: 'Firebase Auth UID is required' }, { status: 400 });
   }
-  console.log(`[API /user/profile PUT] SERVER: Attempting to update profile for firebaseAuthUid: ${firebaseAuthUid} with data:`, { firstName, lastName, username, phoneNumber, country_code });
+  console.log(`[API /user/profile PUT] SERVER: Attempting to update profile for firebaseAuthUid: ${firebaseAuthUid} with data:`, { firstName, lastName, username, phoneNumber, country_code, profile_image_url });
 
   try {
     const fieldsToUpdate: string[] = [];
@@ -77,7 +78,8 @@ export async function PUT(request: NextRequest) {
     if (lastName !== undefined) { fieldsToUpdate.push(`last_name = $${queryIndex++}`); values.push(lastName); }
     if (username !== undefined) { fieldsToUpdate.push(`username = $${queryIndex++}`); values.push(username); }
     if (phoneNumber !== undefined) { fieldsToUpdate.push(`phone_number = $${queryIndex++}`); values.push(phoneNumber); }
-    if (country_code !== undefined) { fieldsToUpdate.push(`country_code = $${queryIndex++}`); values.push(country_code); } // Updated to country_code
+    if (country_code !== undefined) { fieldsToUpdate.push(`country_code = $${queryIndex++}`); values.push(country_code); }
+    if (profile_image_url !== undefined) { fieldsToUpdate.push(`profile_image_url = $${queryIndex++}`); values.push(profile_image_url); } // Added profile_image_url
     
     if (fieldsToUpdate.length === 0) {
       return NextResponse.json({ message: 'No fields to update provided' }, { status: 400 });
@@ -86,7 +88,7 @@ export async function PUT(request: NextRequest) {
     fieldsToUpdate.push(`updated_at = NOW()`);
     values.push(firebaseAuthUid);
 
-    const updateQueryText = `UPDATE users SET ${fieldsToUpdate.join(', ')} WHERE firebase_auth_uid = $${queryIndex} RETURNING id`; // Only return id, fetch full profile next
+    const updateQueryText = `UPDATE users SET ${fieldsToUpdate.join(', ')} WHERE firebase_auth_uid = $${queryIndex} RETURNING id`;
     
     const result = await query(updateQueryText, values);
 
@@ -99,7 +101,7 @@ export async function PUT(request: NextRequest) {
       `SELECT 
          u.id, u.firebase_auth_uid, u.email, u.username, u.first_name, u.last_name, 
          u.phone_number, u.country_code, u.profile_completed_at, u.pin_setup_completed_at,
-         u.is_active, u.is_email_verified, u.created_at, u.updated_at,
+         u.is_active, u.is_email_verified, u.created_at, u.updated_at, u.profile_image_url,
          tp.name as account_type 
        FROM users u
        LEFT JOIN trading_plans tp ON u.trading_plan_id = tp.id
@@ -127,3 +129,4 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ message: 'Internal server error while updating profile' }, { status: 500 });
   }
 }
+    

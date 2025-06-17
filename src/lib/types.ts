@@ -21,6 +21,7 @@ export interface AppUser {
   username: string | null;
   first_name: string | null;
   last_name: string | null;
+  profile_image_url?: string | null; // Added profile image URL
   account_type: AccountType | null; // This is the plan NAME like 'Beginner', 'Pro', derived from trading_plans.name
   trading_plan_id?: number | null;
   phone_number: string | null;
@@ -85,6 +86,7 @@ export const UpdateProfileFormSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters.").max(100).regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores.").optional().or(z.literal('')),
   phoneNumber: z.string().max(50).optional().or(z.literal('')), // Making min length optional for clearing the field
   country_code: z.string().length(2, "Country selection is required.").optional().or(z.literal('')),
+  profile_image_url: z.string().url("Invalid URL format for profile image.").optional().nullable(), // Added
 });
 export type UpdateProfileFormValues = z.infer<typeof UpdateProfileFormSchema>;
 
@@ -97,6 +99,7 @@ export const UpdateProfileRequestSchema = z.object({
   username: z.string().optional(),
   phoneNumber: z.string().optional(),
   country_code: z.string().length(2).optional(),
+  profile_image_url: z.string().url().optional().nullable(), // Added
 });
 export type UpdateProfilePayload = z.infer<typeof UpdateProfileRequestSchema>;
 
@@ -105,6 +108,7 @@ export type UpdateProfilePayload = z.infer<typeof UpdateProfileRequestSchema>;
 export const RegisterUserRequestSchema = SignupDetailsFormSchema.extend({
   email: z.string().email(), // Email comes from Firebase user
   firebaseAuthUid: z.string(),
+  profile_image_url: z.string().url().optional().nullable(), // Added, though likely null at this stage
 }).transform(data => ({
     ...data,
     country_code: data.country, // The 'country' field from form IS the code
@@ -121,7 +125,7 @@ export type SetupPinPayload = z.infer<typeof SetupPinRequestSchema>;
 export const BankWithdrawalFormSchema = z.object({
   amountUSD: z.preprocess(
     (val) => parseFloat(z.string().parse(val)),
-    z.number().min(50, "Withdrawal amount must be at least $50.") 
+    z.number().min(50, "Withdrawal amount must be at least $50.")
   ),
   bankName: z.string().min(3, "Bank name is required.").max(100),
   accountHolderName: z.string().min(3, "Account holder name is required.").max(100),
@@ -129,7 +133,7 @@ export const BankWithdrawalFormSchema = z.object({
   swiftBic: z.string().min(8, "SWIFT/BIC code must be 8-11 characters.").max(11).regex(/^[A-Z0-9]{8,11}$/, "Invalid SWIFT/BIC code format.").optional().or(z.literal('')),
   bankCountry: z.string().length(2, "Bank country is required."),
   iban: z.string().optional().or(z.literal('')),
-  sortCode: z.string().optional().or(z.literal('')), 
+  sortCode: z.string().optional().or(z.literal('')),
   routingNumber: z.string().optional().or(z.literal('')),
   notes: z.string().max(200, "Notes cannot exceed 200 characters.").optional().or(z.literal('')),
 });
@@ -145,7 +149,8 @@ export const BTCWithdrawalFormSchema = z.object({
     .min(26, "BTC address seems too short.")
     .max(62, "BTC address seems too long.")
     // Basic regex for common BTC address formats (P2PKH, P2SH, Bech32), not exhaustive
-    .regex(/^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,61}$/, "Invalid BTC wallet address format."), 
+    .regex(/^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,61}$/, "Invalid BTC wallet address format."),
   notes: z.string().max(200, "Notes cannot exceed 200 characters.").optional().or(z.literal('')),
 });
 export type BTCWithdrawalFormValues = z.infer<typeof BTCWithdrawalFormSchema>;
+    

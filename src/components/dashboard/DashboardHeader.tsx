@@ -16,7 +16,6 @@ import {
   History,
   LineChart,
   Users,
-  // Briefcase, // Portfolio Icon Removed
   ArrowUpCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -44,7 +43,6 @@ const sidebarNavItems = [
   { href: '/dashboard/profile', label: 'Profile', icon: UserCircle },
   { href: '/dashboard/markets', label: 'Markets', icon: LineChart },
   { href: '/dashboard/copy-trading', label: 'Copy Trading', icon: Users },
-  // { href: '/dashboard/portfolio', label: 'Portfolio', icon: Briefcase }, // Removed Portfolio
   { href: '/dashboard/deposit', label: 'Deposit Funds', icon: Wallet },
   { href: '/dashboard/withdrawal', label: 'Withdraw Funds', icon: ArrowUpCircle },
   { href: '/dashboard/transactions', label: 'Transactions', icon: History },
@@ -54,12 +52,12 @@ const sidebarNavItems = [
 
 
 export default function DashboardHeader() {
-  const { appUser, logout } = useAuth(); // Changed user to appUser
+  const { appUser, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
 
-  const getInitials = (name?: string | null) => { // Added null check for name
+  const getInitials = (name?: string | null) => {
     if (!name) return 'FP';
     const parts = name.split(' ').map(n => n[0]);
     if (parts.length > 2) return parts.slice(0, 2).join('').toUpperCase();
@@ -141,12 +139,15 @@ export default function DashboardHeader() {
           </span>
           <span className="sr-only">Toggle notifications</span>
         </Button>
-        {appUser && ( // Changed user to appUser
+        {appUser && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src={`https://placehold.co/100x100.png?text=${getInitials(appUser.username)}`} alt={appUser.username || 'User'} data-ai-hint="user avatar" />
+                  <AvatarImage 
+                    src={appUser.profile_image_url || `https://placehold.co/100x100.png?text=${getInitials(appUser.username)}`} 
+                    alt={appUser.username || 'User'} 
+                  />
                   <AvatarFallback>{getInitials(appUser.username)}</AvatarFallback>
                 </Avatar>
               </Button>
@@ -185,3 +186,4 @@ export default function DashboardHeader() {
     </header>
   );
 }
+    

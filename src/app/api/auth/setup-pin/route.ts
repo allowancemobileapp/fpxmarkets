@@ -32,9 +32,6 @@ export async function POST(request: NextRequest) {
     const pinHashToStore = await bcrypt.hash(pin, salt);
     console.log(`[API /auth/setup-pin POST] SERVER: PIN hashed successfully for ${firebaseAuthUid}.`);
     
-    // UPDATED to use admin_pin based on provided schema.
-    // If a different column like 'pin_hash' is intended for user trading PIN,
-    // ensure that column exists in the 'users' table.
     const updateQuery = `
       UPDATE users 
       SET admin_pin = $1, pin_setup_completed_at = NOW(), updated_at = NOW()
@@ -51,13 +48,12 @@ export async function POST(request: NextRequest) {
     const userId = result.rows[0].id;
     console.log(`[API /auth/setup-pin POST] SERVER: User record updated. User ID: ${userId}. Pin setup timestamp marked.`);
     
-    // Fetch the complete user profile to return
     console.log(`[API /auth/setup-pin POST] SERVER: Attempting to fetch complete user profile for ${firebaseAuthUid}.`);
     const completeUserProfileResult = await query<AppUser>(
        `SELECT 
          u.id, u.firebase_auth_uid, u.email, u.username, u.first_name, u.last_name, 
          u.phone_number, u.country_code, u.profile_completed_at, u.pin_setup_completed_at,
-         u.is_active, u.is_email_verified, u.created_at, u.updated_at,
+         u.is_active, u.is_email_verified, u.created_at, u.updated_at, u.profile_image_url,
          tp.name as account_type 
        FROM users u
        LEFT JOIN trading_plans tp ON u.trading_plan_id = tp.id
@@ -86,3 +82,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Internal server error during PIN setup', detail: error.message }, { status: 500 });
   }
 }
+    

@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
     accountType, // This is the plan name like 'Beginner'
     phoneNumber,
     country_code, // This is now the 2-letter country code
+    // profile_image_url will be null or undefined here initially, not set by user at this stage
   } = validatedPayload;
 
   console.log(`[API /auth/register-user POST] SERVER: Processing registration for firebaseAuthUid: ${firebaseAuthUid}, email: ${email}, accountType: ${accountType}, username: ${username}, country_code: ${country_code}`);
@@ -55,6 +56,7 @@ export async function POST(request: NextRequest) {
       userId = existingUserResult.rows[0].id;
       isNewUser = false;
       console.log(`[API /auth/register-user POST] SERVER: User ${firebaseAuthUid} exists (ID: ${userId}). Attempting to update profile.`);
+      // profile_image_url is not updated here, it's managed separately
       await query(
         `UPDATE users SET 
            username = $1, first_name = $2, last_name = $3, trading_plan_id = $4, 
@@ -65,6 +67,7 @@ export async function POST(request: NextRequest) {
       console.log(`[API /auth/register-user POST] SERVER: Profile updated for existing user ID: ${userId}`);
     } else {
       console.log(`[API /auth/register-user POST] SERVER: New user ${firebaseAuthUid}. Attempting to insert profile.`);
+      // profile_image_url will be NULL by default in the DB at this stage
       const newUserResult = await query(
         `INSERT INTO users (firebase_auth_uid, email, username, first_name, last_name, trading_plan_id, phone_number, country_code, profile_completed_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
@@ -89,7 +92,7 @@ export async function POST(request: NextRequest) {
        `SELECT 
          u.id, u.firebase_auth_uid, u.email, u.username, u.first_name, u.last_name, 
          u.phone_number, u.country_code, u.profile_completed_at, u.pin_setup_completed_at,
-         u.is_active, u.is_email_verified, u.created_at, u.updated_at,
+         u.is_active, u.is_email_verified, u.created_at, u.updated_at, u.profile_image_url,
          tp.name as account_type 
        FROM users u
        LEFT JOIN trading_plans tp ON u.trading_plan_id = tp.id
@@ -128,3 +131,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Internal server error during registration', detail: error.message }, { status: 500 });
   }
 }
+    

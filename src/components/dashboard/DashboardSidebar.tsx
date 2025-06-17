@@ -8,7 +8,6 @@ import {
   UserCircle,
   LineChart,
   Users,
-  // Briefcase, // Portfolio icon removed
   Settings,
   Coins,
   LogOut,
@@ -29,7 +28,6 @@ const mainNavItems = [
   { href: '/dashboard/profile', label: 'Profile', icon: UserCircle },
   { href: '/dashboard/markets', label: 'Markets', icon: LineChart },
   { href: '/dashboard/copy-trading', label: 'Copy Trading', icon: Users },
-  // { href: '/dashboard/portfolio', label: 'Portfolio', icon: Briefcase }, // Removed Portfolio
   { href: '/dashboard/deposit', label: 'Deposit Funds', icon: Wallet },
   { href: '/dashboard/withdrawal', label: 'Withdraw Funds', icon: ArrowUpCircle },
   { href: '/dashboard/transactions', label: 'Transactions', icon: History },
@@ -42,9 +40,9 @@ const secondaryNavItems = [
 
 export default function DashboardSidebar() {
   const pathname = usePathname();
-  const { appUser, logout } = useAuth(); // Changed user to appUser to match context
+  const { appUser, logout } = useAuth();
 
-  const getInitials = (name?: string | null) => { // Added null check for name
+  const getInitials = (name?: string | null) => {
     if (!name) return 'FP';
     const parts = name.split(' ').map(n => n[0]);
     if (parts.length > 2) return parts.slice(0, 2).join('').toUpperCase();
@@ -104,14 +102,13 @@ export default function DashboardSidebar() {
           Logout
         </Button>
       </nav>
-       {appUser && ( // Changed user to appUser
+       {appUser && (
         <div className="mt-auto border-t p-4">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
                 <AvatarImage 
-                src={`https://placehold.co/40x40.png?text=${getInitials(appUser.username)}`} 
-                alt={appUser.username || "User"}
-                data-ai-hint="user avatar"
+                  src={appUser.profile_image_url || `https://placehold.co/40x40.png?text=${getInitials(appUser.username)}`} 
+                  alt={appUser.username || "User"}
                 />
                 <AvatarFallback>{getInitials(appUser.username)}</AvatarFallback>
             </Avatar>
@@ -125,3 +122,4 @@ export default function DashboardSidebar() {
     </aside>
   );
 }
+    

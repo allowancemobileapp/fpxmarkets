@@ -34,6 +34,7 @@ export default function DashboardProfilePageContent() {
     username: appUser?.username || '',
     phoneNumber: appUser?.phone_number || '',
     country_code: appUser?.country_code || '',
+    profile_image_url: appUser?.profile_image_url || null, // Include for form state consistency
   }), [appUser]);
 
   const form = useForm<UpdateProfileFormValues>({
@@ -76,7 +77,10 @@ export default function DashboardProfilePageContent() {
     setIsSubmitting(true);
 
     const changedFields: Partial<UpdateProfileFormValues> = {};
+    // Only include profile_image_url if we were actually changing it via the form
+    // For now, we are not, so it's excluded from changedFields unless an upload mechanism is added
     (Object.keys(data) as Array<keyof UpdateProfileFormValues>).forEach(key => {
+      if (key === 'profile_image_url') return; // Skip profile_image_url for this form's direct update
       // @ts-ignore
       if (data[key] !== defaultValues[key]) {
         // @ts-ignore
@@ -93,6 +97,7 @@ export default function DashboardProfilePageContent() {
     console.log('[ProfilePageContent] Submitting changed fields:', changedFields);
 
     try {
+      // The API is ready to accept profile_image_url if sent, but this form doesn't send it.
       const response = await fetch('/api/user/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -182,9 +187,8 @@ export default function DashboardProfilePageContent() {
                 <div className="flex flex-col sm:flex-row items-center gap-6">
                   <Avatar className="h-24 w-24">
                     <AvatarImage
-                      src={`https://placehold.co/100x100.png?text=${getInitials(appUser.username)}`}
+                      src={appUser.profile_image_url || `https://placehold.co/100x100.png?text=${getInitials(appUser.username)}`}
                       alt={appUser.username || 'User'}
-                      data-ai-hint="user avatar"
                     />
                     <AvatarFallback>{getInitials(appUser.username)}</AvatarFallback>
                   </Avatar>
@@ -233,7 +237,6 @@ export default function DashboardProfilePageContent() {
                       </FormItem>
                     )}
                   />
-                  {/* Email display (read-only) */}
                   <FormItem>
                     <Label htmlFor="email_display">Email</Label>
                     <Input id="email_display" type="email" value={appUser.email} readOnly className="mt-1 bg-muted/50" />
@@ -281,13 +284,12 @@ export default function DashboardProfilePageContent() {
                       </FormItem>
                     )}
                   />
-                   {/* Account Type display (read-only or disabled select) */}
                   <FormItem>
                     <Label htmlFor="accountType_display">Account Type</Label>
                     {isEditing ? (
                       <Select
                         value={appUser.account_type || undefined}
-                        disabled // Account type change is a separate process
+                        disabled 
                       >
                         <FormControl>
                           <SelectTrigger className="mt-1 bg-muted/50 cursor-not-allowed">
@@ -309,12 +311,10 @@ export default function DashboardProfilePageContent() {
                         <Info className="h-3 w-3 mr-1.5" /> Account type changes require a separate process.
                     </div>
                   </FormItem>
-                  {/* Profile Completed At display (read-only) */}
                   <FormItem>
                     <Label htmlFor="profileCompletedAt_display">Profile Completed</Label>
                     <Input id="profileCompletedAt_display" value={appUser.profile_completed_at ? new Date(appUser.profile_completed_at).toLocaleDateString() : 'No'} readOnly className="mt-1 bg-muted/50" />
                   </FormItem>
-                  {/* PIN Setup Completed At display (read-only) */}
                   <FormItem>
                     <Label htmlFor="pinSetupCompletedAt_display">PIN Setup</Label>
                     <Input id="pinSetupCompletedAt_display" value={appUser.pin_setup_completed_at ? 'Completed' : 'Pending'} readOnly className="mt-1 bg-muted/50" />
@@ -354,11 +354,10 @@ export default function DashboardProfilePageContent() {
             <Button type="button" variant="outline" className="w-full justify-start" onClick={() => handleFeatureComingSoon('Change Trading PIN')} disabled>
               <KeyRound className="mr-2 h-4 w-4" /> Change Trading PIN (Coming Soon)
             </Button>
-            {/* Removed 2FA Button */}
           </CardContent>
         </Card>
       </div>
     </div>
   );
 }
-
+    
