@@ -43,7 +43,7 @@ const getTransactionIcon = (type: string, status: string, amountUsd?: string | n
   if (normalizedType.includes('WITHDRAWAL')) {
     if (normalizedStatus === 'FAILED') return <ArrowUpCircle className="text-red-500" />;
     if (normalizedStatus === 'PENDING') return <ArrowUpCircle className="text-yellow-500" />;
-    return <ArrowUpCircle className="text-blue-500" />; 
+    return <ArrowUpCircle className="text-blue-500" />;
   }
   if (normalizedType.includes('TRADE_BUY') || normalizedType.includes('TRADE_SELL')) {
     return <Repeat className="text-blue-500" />;
@@ -67,7 +67,7 @@ const getTransactionIcon = (type: string, status: string, amountUsd?: string | n
 
 const displayAmountCrypto = (amount: string | null, assetName: string): string => {
   if (amount === null || amount === undefined || amount.trim() === '') return '-';
-  
+
   const numericAmount = parseFloat(amount);
   if (isNaN(numericAmount)) return '-';
 
@@ -88,7 +88,7 @@ export default function TransactionsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (authLoading) return; 
+    if (authLoading) return;
 
     if (!appUser) {
       setError("User not authenticated. Please login.");
@@ -102,8 +102,28 @@ export default function TransactionsPage() {
       try {
         const response = await fetch(`/api/user/transactions?firebaseAuthUid=${appUser.firebase_auth_uid}`);
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || `Failed to fetch transactions. Status: ${response.status}`);
+          let detailedErrorMessage = `Failed to fetch transactions. API Status: ${response.status}.`; // Default message
+          try {
+            const errorData = await response.json();
+            // Prefer detail if available, then message, then stringify
+            if (errorData.detail) {
+              detailedErrorMessage = `API Error (${response.status}): ${errorData.detail}`;
+            } else if (errorData.message) {
+              detailedErrorMessage = `API Error (${response.status}): ${errorData.message}`;
+            } else if (Object.keys(errorData).length > 0) { 
+              detailedErrorMessage = `API Error (${response.status}): ${JSON.stringify(errorData).substring(0, 250)}`;
+            }
+          } catch (jsonError) {
+            // Response was not JSON
+            try {
+              const errorText = await response.text();
+              detailedErrorMessage = `API Error (${response.status}), Non-JSON response: ${errorText.substring(0, 250)}`;
+            } catch (textError) {
+              // Stick with status if text also fails
+            }
+          }
+          console.error("[TransactionsPage] Fetch error details:", detailedErrorMessage);
+          throw new Error(detailedErrorMessage);
         }
         const data: Transaction[] = await response.json();
         setTransactions(data);
@@ -122,10 +142,10 @@ export default function TransactionsPage() {
     switch (status?.toUpperCase()) {
       case 'COMPLETED':
       case 'EXECUTED':
-      case 'PROFIT': // Assuming 'PROFIT' from mock implies completion
-        return 'default'; // Will use primary/positive color based on theme
+      case 'PROFIT':
+        return 'default';
       case 'PENDING':
-        return 'secondary'; // Will use accent-like color (yellowish in default theme)
+        return 'secondary';
       case 'FAILED':
       case 'CANCELLED':
         return 'destructive';
