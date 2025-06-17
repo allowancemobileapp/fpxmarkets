@@ -38,20 +38,19 @@ export async function GET(request: NextRequest) {
     const userId = userResult.rows[0].id;
     console.log(`[API /user/transactions GET] SERVER: Found user ID: ${userId} for firebaseAuthUid: ${firebaseAuthUid}`);
 
+    // MODIFIED QUERY: Removed LEFT JOIN to 'assets' table and reference to a.symbol
     const transactionsQuery = `
       SELECT
         t.id,
         t.created_at,
         t.transaction_type,
-        COALESCE(a.symbol, tp.symbol, t.description, 'N/A') as asset_name,
-        CAST(t.amount_crypto AS TEXT) as amount_crypto, -- Cast to text to preserve precision or handle NULLs
-        CAST(t.amount_usd_equivalent AS TEXT) as amount_usd_equivalent, -- Cast to text
+        COALESCE(tp.symbol, t.description, 'N/A') as asset_name, -- a.symbol removed
+        CAST(t.amount_crypto AS TEXT) as amount_crypto,
+        CAST(t.amount_usd_equivalent AS TEXT) as amount_usd_equivalent,
         t.status,
         t.description
       FROM
         transactions t
-      LEFT JOIN
-        assets a ON t.asset_id = a.id
       LEFT JOIN
         trading_pairs tp ON t.pair_id = tp.id
       WHERE
@@ -62,7 +61,6 @@ export async function GET(request: NextRequest) {
     
     const transactionsResult = await query<ApiTransaction>(transactionsQuery, [userId]);
     
-    // Ensure numeric fields are strings and handle potential nulls for amount_crypto
     const formattedTransactions = transactionsResult.rows.map(txn => ({
         ...txn,
         amount_crypto: txn.amount_crypto !== null ? String(txn.amount_crypto) : null,
@@ -75,6 +73,8 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error(`[API /user/transactions GET] SERVER: Error fetching transactions for ${firebaseAuthUid}:`, error);
     if (error.stack) console.error(`[API /user/transactions GET] SERVER: Error stack: ${error.stack}`);
-    return NextResponse.json({ message: 'Internal server error while fetching transactions', detail: error.message }, { status: 500 });
+    // Send back a more structured error, including the actual DB error message if possible
+    const dbErrorMessage = error.message || 'Unknown database error';
+    return NextResponse.json({ message: 'Internal server error while fetching transactions', detail: dbErrorMessage }, { status: 500 });
   }
 }
