@@ -76,6 +76,11 @@ export async function GET(request: NextRequest) {
     console.error(`[API /user/transactions GET] SERVER: Error fetching transactions for ${firebaseAuthUid}:`, error);
     if (error.stack) console.error(`[API /user/transactions GET] SERVER: Error stack: ${error.stack}`);
     const dbErrorMessage = error.message || 'Unknown database error';
+    // Check for specific DB errors like "relation does not exist"
+    if (error.code === '42P01') { // PostgreSQL error code for undefined_table
+        console.error(`[API /user/transactions GET] SERVER: DB Error - A table in the query does not exist: ${error.message}`);
+         return NextResponse.json({ message: 'Internal server error: Database schema mismatch.', detail: `Table referenced in query not found: ${error.table || 'unknown'}` }, { status: 500 });
+    }
     return NextResponse.json({ message: 'Internal server error while fetching transactions', detail: dbErrorMessage }, { status: 500 });
   }
 }
