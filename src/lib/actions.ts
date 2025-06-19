@@ -1,3 +1,4 @@
+
 'use server';
 
 import { Resend } from 'resend';
@@ -11,7 +12,16 @@ import {
 import { generateMarketInsights as generateMarketInsightsFlow, type MarketInsightsInput, type MarketInsightsOutput } from '@/ai/flows/generate-market-insights';
 import { getImageByContextTag, type ImageData } from '@/lib/imageService';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resendApiKey = process.env.RESEND_API_KEY;
+const resendFromEmail = process.env.RESEND_FROM_EMAIL;
+const resendToEmail = process.env.RESEND_TO_EMAIL;
+
+let resend: Resend | null = null;
+if (resendApiKey) {
+  resend = new Resend(resendApiKey);
+} else {
+  console.warn('[Action:Global] RESEND_API_KEY is not set. Email functionality will be disabled.');
+}
 
 export async function submitContactForm(data: ContactFormValues): Promise<{ success: boolean; message: string }> {
   const validationResult = ContactFormSchema.safeParse(data);
@@ -21,24 +31,24 @@ export async function submitContactForm(data: ContactFormValues): Promise<{ succ
 
   const { name, email, message } = validationResult.data;
 
-  if (!process.env.RESEND_API_KEY) {
-    console.error('[Action:submitContactForm] RESEND_API_KEY is not set.');
-    return { success: false, message: "Email configuration error. Please contact support." };
+  if (!resend) {
+    console.error('[Action:submitContactForm] Resend SDK not initialized because RESEND_API_KEY is missing.');
+    return { success: false, message: "Email service is not configured. Please contact support. (API Key Missing)" };
   }
-  if (!process.env.RESEND_FROM_EMAIL) {
-    console.error('[Action:submitContactForm] RESEND_FROM_EMAIL is not set.');
-    return { success: false, message: "Email configuration error (from). Please contact support." };
+  if (!resendFromEmail) {
+    console.error('[Action:submitContactForm] RESEND_FROM_EMAIL environment variable is not set.');
+    return { success: false, message: "Email service is not configured. Please contact support. (From Email Missing)" };
   }
-  if (!process.env.RESEND_TO_EMAIL) {
-    console.error('[Action:submitContactForm] RESEND_TO_EMAIL is not set.');
-    return { success: false, message: "Email configuration error (to). Please contact support." };
+  if (!resendToEmail) {
+    console.error('[Action:submitContactForm] RESEND_TO_EMAIL environment variable is not set.');
+    return { success: false, message: "Email service is not configured. Please contact support. (To Email Missing)" };
   }
 
   try {
-    console.log(`[Action:submitContactForm] Attempting to send email from ${process.env.RESEND_FROM_EMAIL} to ${process.env.RESEND_TO_EMAIL}`);
-    await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL,
-      to: process.env.RESEND_TO_EMAIL,
+    console.log(`[Action:submitContactForm] Attempting to send email from ${resendFromEmail} to ${resendToEmail}`);
+    const { data: resendData, error: resendError } = await resend.emails.send({
+      from: resendFromEmail,
+      to: resendToEmail,
       subject: `New Contact Form Submission from ${name} - FPX Markets`,
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6;">
@@ -55,13 +65,19 @@ export async function submitContactForm(data: ContactFormValues): Promise<{ succ
           <p style="font-size: 0.9em; color: #777;">This email was sent from the contact form on fpxmarkets.com.</p>
         </div>
       `,
-      reply_to: email, // So you can reply directly to the user
+      reply_to: email,
     });
-    console.log('[Action:submitContactForm] Email sent successfully via Resend.');
+
+    if (resendError) {
+      console.error('[Action:submitContactForm] Resend API Error:', resendError);
+      return { success: false, message: `Failed to send message. Resend Error: ${resendError.message}` };
+    }
+
+    console.log('[Action:submitContactForm] Email sent successfully via Resend. ID:', resendData?.id);
     return { success: true, message: "Thank you for your message! We'll be in touch soon." };
-  } catch (error) {
-    console.error('[Action:submitContactForm] Error sending email via Resend:', error);
-    return { success: false, message: "Failed to send message. Please try again later or contact support directly." };
+  } catch (error: any) {
+    console.error('[Action:submitContactForm] Exception sending email via Resend:', error);
+    return { success: false, message: "Failed to send message due to an unexpected error. Please try again later or contact support directly." };
   }
 }
 
