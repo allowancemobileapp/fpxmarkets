@@ -11,9 +11,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
-// Script import might no longer be needed if no other external scripts are in head.
-// However, it's harmless to keep if other scripts might be added later.
-// import Script from 'next/script'; 
+import Script from 'next/script'; // Import Script
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -72,7 +70,24 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
-        {/* Smartsupp Live Chat script has been removed. */}
+        <Script id="smartsupp-script-block" strategy="beforeInteractive">
+          {`
+            console.log("[FPX Markets - Smartsupp] Attempting to initialize Smartsupp script block...");
+            var _smartsupp = _smartsupp || {};
+            _smartsupp.key = '96b3f10540afb961aa0ed8d42c1fd52dedc26a9a';
+            window.smartsupp||(function(d) {
+              var s,c,o=smartsupp=function(){ o._.push(arguments)};o._=[];
+              s=d.getElementsByTagName('script')[0];c=d.createElement('script');
+              c.type='text/javascript';c.charset='utf-8';c.async=true;
+              c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
+            })(document);
+            console.log("[FPX Markets - Smartsupp] Smartsupp script block processed.");
+          `}
+        </Script>
+        <noscript>
+          {/* Using dangerouslySetInnerHTML for noscript content with an anchor tag */}
+          <div dangerouslySetInnerHTML={{ __html: 'Powered by <a href="https://www.smartsupp.com" target="_blank" rel="noopener noreferrer">Smartsupp</a>' }} />
+        </noscript>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
         <Suspense fallback={<AuthLoader />}>
@@ -94,7 +109,6 @@ export default async function LocaleLayout({
             </NextIntlClientProvider>
           </AuthProvider>
         </Suspense>
-        
       </body>
     </html>
   );
