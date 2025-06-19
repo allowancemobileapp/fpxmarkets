@@ -37,12 +37,12 @@ export default function CopyTradingPage() {
               >
                 <div className="relative h-40 w-full">
                    <Image 
-                    src={trader.image} 
+                    src={trader.image} // This will now use the Supabase URL
                     alt={`${trader.username} - Trading Activity`} 
                     layout="fill" 
                     objectFit="cover"
-                    data-ai-hint={trader.imageHint}
                     className="opacity-80"
+                    // data-ai-hint removed as this is now a specific image
                   />
                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent p-4 flex flex-col justify-end">
                        <h3 className="text-lg font-semibold text-white">{trader.username}</h3>
@@ -89,3 +89,5 @@ export default function CopyTradingPage() {
     </div>
   );
 }
+
+    

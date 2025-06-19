@@ -59,11 +59,11 @@ export default function TraderProfilePage() {
       <Card className="shadow-xl overflow-hidden">
         <div className="relative h-48 md:h-64 w-full">
           <Image 
-            src={trader.image} 
+            src={trader.image} // This will now use the Supabase URL
             alt={`${trader.username}'s Profile Banner`} 
             layout="fill" 
             objectFit="cover" 
-            data-ai-hint={trader.imageHint}
+            // data-ai-hint removed as this is now a specific image
             className="opacity-80"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-6 flex items-end">
@@ -153,3 +153,5 @@ export default function TraderProfilePage() {
     </div>
   );
 }
+
+    
