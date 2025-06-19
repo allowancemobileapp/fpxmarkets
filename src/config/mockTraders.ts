@@ -14,8 +14,6 @@ export interface MockTrader {
   imageHint: string; // Kept for potential future use or reference
 }
 
-// IMPORTANT: URLs have been updated based on your input.
-// The base URL construction is kept for consistency, ensure paths are correct.
 const baseSupabaseUrl = 'https://yosjqhioxjfywkdaaflv.supabase.co/storage/v1/object/public/copy-traders';
 
 export const mockTraders: MockTrader[] = [
@@ -24,7 +22,7 @@ export const mockTraders: MockTrader[] = [
   { id: '3', username: 'YieldHero', avatarSeed: 'YH', risk: 'High', profit: '+45.0%', copiers: 500, market: 'Commodities', strategy: 'Trend Following & Futures', joined: '2023-05-20', image: `${baseSupabaseUrl}/5eeee52d-ce8e-4d5b-b362-eac191a33d9e_rw_1200.jpg`, imageHint: "commodities chart" },
   { id: '4', username: 'SteadyGrowth', avatarSeed: 'SG', risk: 'Low', profit: '+12.8%', copiers: 1500, market: 'Indices & ETFs', strategy: 'Long-term Index Investing', joined: '2022-08-10', image: `${baseSupabaseUrl}/images%20(2).jpg`, imageHint: "etf growth" },
   { id: '5', username: 'CryptoKing', avatarSeed: 'CK', risk: 'High', profit: '+75.2%', copiers: 2200, market: 'Cryptocurrencies', strategy: 'Altcoin Specialist, HODLing', joined: '2021-07-01', image: `${baseSupabaseUrl}/images%20(12).jpg`, imageHint: "crypto network" },
-  { id: '6', username: 'ForexMaster', avatarSeed: 'FM', risk: 'Medium', profit: '+33.1%', copiers: 950, market: 'Forex Majors', strategy: 'Day Trading, Price Action', joined: '2022-03-12', image: `${baseSupabaseUrl}/images%20(3).jpg`, imageHint: "forex charts" },
+  // ForexMaster (id: '6') removed
   { id: '7', username: 'SafeBets', avatarSeed: 'SB', risk: 'Low', profit: '+9.5%', copiers: 1800, market: 'Bonds & ETFs', strategy: 'Capital Preservation', joined: '2023-02-28', image: `${baseSupabaseUrl}/images%20(4).jpg`, imageHint: "investment safety" },
   { id: '8', username: 'GlobalMacro', avatarSeed: 'GM', risk: 'Medium', profit: '+21.7%', copiers: 600, market: 'Global Indices, Forex', strategy: 'Macroeconomic Analysis', joined: '2021-12-05', image: `${baseSupabaseUrl}/images%20(11).jpg`, imageHint: "global markets" },
   { id: '9', username: 'TechTrend', avatarSeed: 'TT', risk: 'Medium', profit: '+29.9%', copiers: 750, market: 'Tech Stocks (NASDAQ)', strategy: 'Growth Stocks, Momentum', joined: '2023-08-01', image: `${baseSupabaseUrl}/images%20(16).jpg`, imageHint: "tech stocks" },
@@ -40,14 +38,15 @@ export const mockTraders: MockTrader[] = [
   { id: '19', username: 'CryptoWhale', avatarSeed: 'CW', risk: 'High', profit: '+88.0%', copiers: 1900, market: 'Bitcoin & Ethereum', strategy: 'Large Cap Crypto Plays', joined: '2020-10-10', image: `${baseSupabaseUrl}/images%20(6).jpg`, imageHint: "bitcoin ethereum" },
   { id: '20', username: 'BalancedPortfolio', avatarSeed: 'BP', risk: 'Low', profit: '+10.5%', copiers: 2500, market: 'Mixed Assets', strategy: 'Conservative Diversification', joined: '2023-06-01', image: `${baseSupabaseUrl}/images%20(7).jpg`, imageHint: "portfolio balance" },
   { id: '21', username: 'OptionsOracle', avatarSeed: 'OO', risk: 'High', profit: '+42.3%', copiers: 650, market: 'Stock Options', strategy: 'Complex Options Strategies', joined: '2022-04-12', image: `${baseSupabaseUrl}/images%20(14).jpg`, imageHint: "options trading" },
-  // New Traders
-  { id: '22', username: 'NewTrader1', avatarSeed: 'N1', risk: 'Medium', profit: '+10.0%', copiers: 100, market: 'Forex', strategy: 'Trend Following', joined: '2024-01-01', image: `${baseSupabaseUrl}/images%20(8).jpg`, imageHint: "trader profile" },
-  { id: '23', username: 'NewTrader2', avatarSeed: 'N2', risk: 'Low', profit: '+5.0%', copiers: 50, market: 'Stocks', strategy: 'Dividend Investing', joined: '2024-01-05', image: `${baseSupabaseUrl}/images%20(9).jpg`, imageHint: "trader profile" },
-  { id: '24', username: 'NewTrader3', avatarSeed: 'N3', risk: 'High', profit: '+30.0%', copiers: 200, market: 'Crypto', strategy: 'Day Trading Altcoins', joined: '2024-01-10', image: `${baseSupabaseUrl}/istockphoto-1082483460-612x612.jpg`, imageHint: "trader profile" },
-  { id: '25', username: 'NewTrader4', avatarSeed: 'N4', risk: 'Medium', profit: '+15.5%', copiers: 150, market: 'Indices', strategy: 'Swing Trading SPX', joined: '2024-01-15', image: `${baseSupabaseUrl}/istockphoto-1410538853-612x612.jpg`, imageHint: "trader profile" },
-  { id: '26', username: 'NewTrader5', avatarSeed: 'N5', risk: 'Low', profit: '+8.2%', copiers: 120, market: 'ETFs', strategy: 'Global Diversification', joined: '2024-01-20', image: `${baseSupabaseUrl}/istockphoto-517696839-612x612.jpg`, imageHint: "trader profile" },
-  { id: '27', username: 'NewTrader6', avatarSeed: 'N6', risk: 'Medium', profit: '+12.3%', copiers: 90, market: 'Commodities', strategy: 'Gold & Silver', joined: '2024-01-25', image: `${baseSupabaseUrl}/istockphoto-928023890-612x612.jpg`, imageHint: "trader profile" },
-  { id: '28', username: 'NewTrader7', avatarSeed: 'N7', risk: 'High', profit: '+22.7%', copiers: 250, market: 'Tech Stocks', strategy: 'Momentum Plays', joined: '2024-02-01', image: `${baseSupabaseUrl}/photo_1241590_450_450.jpg`, imageHint: "trader profile" },
+  // New Traders (6 of them)
+  { id: '22', username: 'TrendRiderFX', avatarSeed: 'TR', risk: 'Medium', profit: '+10.0%', copiers: 100, market: 'Forex', strategy: 'Trend Following', joined: '2024-01-01', image: `${baseSupabaseUrl}/images%20(8).jpg`, imageHint: "forex trend" },
+  { id: '23', username: 'DividendYield', avatarSeed: 'DY', risk: 'Low', profit: '+5.0%', copiers: 50, market: 'Stocks', strategy: 'Dividend Investing', joined: '2024-01-05', image: `${baseSupabaseUrl}/images%20(9).jpg`, imageHint: "dividend stock" },
+  { id: '24', username: 'CryptoPulse', avatarSeed: 'CP', risk: 'High', profit: '+30.0%', copiers: 200, market: 'Crypto', strategy: 'Day Trading Altcoins', joined: '2024-01-10', image: `${baseSupabaseUrl}/istockphoto-1082483460-612x612.jpg`, imageHint: "altcoin chart" },
+  { id: '25', username: 'IndexSwing', avatarSeed: 'IS', risk: 'Medium', profit: '+15.5%', copiers: 150, market: 'Indices', strategy: 'Swing Trading SPX', joined: '2024-01-15', image: `${baseSupabaseUrl}/istockphoto-1410538853-612x612.jpg`, imageHint: "index fund" },
+  // New Trader 5 (image: istockphoto-517696839-612x612.jpg) was removed
+  { id: '26', username: 'MetalMover', avatarSeed: 'MMo', risk: 'Medium', profit: '+12.3%', copiers: 90, market: 'Commodities', strategy: 'Gold & Silver', joined: '2024-01-25', image: `${baseSupabaseUrl}/istockphoto-928023890-612x612.jpg`, imageHint: "gold silver" },
+  { id: '27', username: 'TechMomentum', avatarSeed: 'TM', risk: 'High', profit: '+22.7%', copiers: 250, market: 'Tech Stocks', strategy: 'Momentum Plays', joined: '2024-02-01', image: `${baseSupabaseUrl}/photo_1241590_450_450.jpg`, imageHint: "tech graph" },
 ];
+    
 
     
