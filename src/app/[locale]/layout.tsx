@@ -55,11 +55,11 @@ export default async function LocaleLayout({
   let messages;
   try {
     messages = await getMessages(locale);
-    console.log(`[LocaleLayout] Successfully loaded messages for locale: ${locale}`);
+    // console.log(`[LocaleLayout] Successfully loaded messages for locale: ${locale}`);
   } catch (error) {
     console.error(`[LocaleLayout] Failed to load messages for locale: ${locale}. Error:`, error);
     try {
-        console.warn(`[LocaleLayout] Attempting to fallback to 'en' messages for locale: ${locale}`);
+        // console.warn(`[LocaleLayout] Attempting to fallback to 'en' messages for locale: ${locale}`);
         messages = await getMessages('en');
     } catch (fallbackError) {
         console.error(`[LocaleLayout] CRITICAL: Failed to load fallback 'en' messages. Error:`, fallbackError);
@@ -70,9 +70,9 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
+        {/* Smartsupp Live Chat script - Direct implementation from Smartsupp */}
         <Script id="smartsupp-v2" strategy="beforeInteractive">
           {`
-            console.log("[FPX Markets - Smartsupp] Attempting to initialize Smartsupp script (v2)...");
             var _smartsupp = _smartsupp || {};
             _smartsupp.key = '96b3f10540afb961aa0ed8d42c1fd52dedc26a9a';
             window.smartsupp||(function(d) {
@@ -81,7 +81,6 @@ export default async function LocaleLayout({
               c.type='text/javascript';c.charset='utf-8';c.async=true;
               c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
             })(document);
-            console.log("[FPX Markets - Smartsupp] Smartsupp script block (v2) processed.");
           `}
         </Script>
         <noscript>
