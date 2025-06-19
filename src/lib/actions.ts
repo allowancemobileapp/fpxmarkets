@@ -17,24 +17,42 @@ const resendFromEmail = process.env.RESEND_FROM_EMAIL;
 const resendToEmail = process.env.RESEND_TO_EMAIL;
 
 let resend: Resend | null = null;
-if (resendApiKey) {
+
+// Initialize Resend only if all required environment variables are present
+if (resendApiKey && resendFromEmail && resendToEmail) {
   resend = new Resend(resendApiKey);
+  console.log('[Action:Global] Resend SDK initialized.');
 } else {
-  console.warn('[Action:Global] RESEND_API_KEY is not set. Email functionality will be disabled.');
+  console.warn('[Action:Global] Resend SDK NOT initialized due to missing environment variables.');
+  if (!resendApiKey) console.warn('[Action:Global] RESEND_API_KEY is missing.');
+  if (!resendFromEmail) console.warn('[Action:Global] RESEND_FROM_EMAIL is missing.');
+  if (!resendToEmail) console.warn('[Action:Global] RESEND_TO_EMAIL is missing.');
 }
 
 export async function submitContactForm(data: ContactFormValues): Promise<{ success: boolean; message: string }> {
+  console.log('[Action:submitContactForm] Received data:', JSON.stringify(data));
+  console.log('[Action:submitContactForm] Environment Vars Check:');
+  console.log(`[Action:submitContactForm] RESEND_API_KEY Loaded: ${resendApiKey ? 'Yes, first few chars: ' + resendApiKey.substring(0,5) + '...' : 'No'}`);
+  console.log(`[Action:submitContactForm] RESEND_FROM_EMAIL Loaded: ${resendFromEmail || 'No'}`);
+  console.log(`[Action:submitContactForm] RESEND_TO_EMAIL Loaded: ${resendToEmail || 'No'}`);
+
   const validationResult = ContactFormSchema.safeParse(data);
   if (!validationResult.success) {
+    console.error('[Action:submitContactForm] Validation failed:', validationResult.error.flatten());
     return { success: false, message: "Invalid form data. Please check your input." };
   }
 
   const { name, email, message } = validationResult.data;
 
   if (!resend) {
-    console.error('[Action:submitContactForm] Resend SDK not initialized because RESEND_API_KEY is missing.');
-    return { success: false, message: "Email service is not configured. Please contact support. (API Key Missing)" };
+    console.error('[Action:submitContactForm] Resend SDK is not initialized. One or more Resend environment variables are missing. Cannot send email.');
+    let missingVars = [];
+    if (!resendApiKey) missingVars.push("RESEND_API_KEY");
+    if (!resendFromEmail) missingVars.push("RESEND_FROM_EMAIL");
+    if (!resendToEmail) missingVars.push("RESEND_TO_EMAIL");
+    return { success: false, message: `Email service is not configured. Missing: ${missingVars.join(', ')}. Please contact support.` };
   }
+  // These checks are now technically redundant if `resend` object is null, but good for clarity
   if (!resendFromEmail) {
     console.error('[Action:submitContactForm] RESEND_FROM_EMAIL environment variable is not set.');
     return { success: false, message: "Email service is not configured. Please contact support. (From Email Missing)" };
@@ -47,8 +65,8 @@ export async function submitContactForm(data: ContactFormValues): Promise<{ succ
   try {
     console.log(`[Action:submitContactForm] Attempting to send email from ${resendFromEmail} to ${resendToEmail}`);
     const { data: resendData, error: resendError } = await resend.emails.send({
-      from: resendFromEmail,
-      to: resendToEmail,
+      from: resendFromEmail, // e.g., 'FPX Markets <noreply@fpxmarkets.com>'
+      to: resendToEmail,     // e.g., 'fpxmarkets@gmail.com'
       subject: `New Contact Form Submission from ${name} - FPX Markets`,
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6;">
@@ -69,7 +87,7 @@ export async function submitContactForm(data: ContactFormValues): Promise<{ succ
     });
 
     if (resendError) {
-      console.error('[Action:submitContactForm] Resend API Error:', resendError);
+      console.error('[Action:submitContactForm] Resend API Error:', JSON.stringify(resendError, null, 2));
       return { success: false, message: `Failed to send message. Resend Error: ${resendError.message}` };
     }
 
@@ -87,7 +105,8 @@ export async function getAIMarketInsights(input: MarketInsightsInput): Promise<M
     const result = await generateMarketInsightsFlow(input);
     console.log("[Action:getAIMarketInsights] Received result:", result);
     return result;
-  } catch (error: any) {
+  } catch (error: any)
+    {
     console.error("[Action:getAIMarketInsights] Error generating market insights:", error);
     let errorMessage = "Failed to generate market insights. Please try again later.";
     if (error.message) {
@@ -176,3 +195,4 @@ export async function getSpecificImageByContextTag(contextTag: string): Promise<
   }
 }
 
+    
