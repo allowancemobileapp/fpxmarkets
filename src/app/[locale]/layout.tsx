@@ -11,7 +11,9 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
-import Script from 'next/script'; // Import Script
+// Script import might no longer be needed if no other external scripts are in head.
+// However, it's harmless to keep if other scripts might be added later.
+// import Script from 'next/script'; 
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -70,24 +72,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
-        {/* Smartsupp Live Chat script - Moved to head with beforeInteractive strategy */}
-        <Script id="smartsupp-loader" strategy="beforeInteractive">
-          {`
-            console.log('[FPX Markets - Smartsupp] Attempting to initialize Smartsupp script block from next/script. Key: 96b3f10540afb961aa0ed8d42c1fd52dedc26a9a');
-            var _smartsupp = _smartsupp || {};
-            _smartsupp.key = '96b3f10540afb961aa0ed8d42c1fd52dedc26a9a';
-            window.smartsupp||(function(d) {
-              var s,c,o=smartsupp=function(){ o._.push(arguments)};o._=[];
-              s=d.getElementsByTagName('script')[0];c=d.createElement('script');
-              c.type='text/javascript';c.charset='utf-8';c.async=true;
-              c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
-            })(document);
-            console.log('[FPX Markets - Smartsupp] Smartsupp script loaded and executed by next/script.');
-          `}
-        </Script>
-        <noscript>
-          Powered by <a href="https://www.smartsupp.com" target="_blank" rel="noopener noreferrer">Smartsupp</a>
-        </noscript>
+        {/* Smartsupp Live Chat script has been removed. */}
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
         <Suspense fallback={<AuthLoader />}>
@@ -114,4 +99,3 @@ export default async function LocaleLayout({
     </html>
   );
 }
-    
