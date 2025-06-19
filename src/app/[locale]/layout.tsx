@@ -70,9 +70,9 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
-        <Script id="smartsupp-script-block" strategy="beforeInteractive">
+        <Script id="smartsupp-v2" strategy="beforeInteractive">
           {`
-            console.log("[FPX Markets - Smartsupp] Attempting to initialize Smartsupp script block...");
+            console.log("[FPX Markets - Smartsupp] Attempting to initialize Smartsupp script (v2)...");
             var _smartsupp = _smartsupp || {};
             _smartsupp.key = '96b3f10540afb961aa0ed8d42c1fd52dedc26a9a';
             window.smartsupp||(function(d) {
@@ -81,11 +81,10 @@ export default async function LocaleLayout({
               c.type='text/javascript';c.charset='utf-8';c.async=true;
               c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
             })(document);
-            console.log("[FPX Markets - Smartsupp] Smartsupp script block processed.");
+            console.log("[FPX Markets - Smartsupp] Smartsupp script block (v2) processed.");
           `}
         </Script>
         <noscript>
-          {/* Using dangerouslySetInnerHTML for noscript content with an anchor tag */}
           <div dangerouslySetInnerHTML={{ __html: 'Powered by <a href="https://www.smartsupp.com" target="_blank" rel="noopener noreferrer">Smartsupp</a>' }} />
         </noscript>
       </head>
