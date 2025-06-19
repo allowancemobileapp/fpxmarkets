@@ -91,14 +91,14 @@ export async function getAIMarketInsights(input: MarketInsightsInput): Promise<M
     console.error("[Action:getAIMarketInsights] Error generating market insights:", error);
     let errorMessage = "Failed to generate market insights. Please try again later.";
     if (error.message) {
-      errorMessage += \` Details: \${error.message}\`;
+      errorMessage += ` Details: ${error.message}`;
     }
     if (error.stack) {
       console.error("[Action:getAIMarketInsights] Error stack:", error.stack);
     }
     if (error.response && error.response.data) {
         console.error("[Action:getAIMarketInsights] API Error Data:", error.response.data);
-        errorMessage += \` API Response: \${JSON.stringify(error.response.data)}\`;
+        errorMessage += ` API Response: ${JSON.stringify(error.response.data)}`;
     }
     return { error: errorMessage };
   }
@@ -123,7 +123,7 @@ export async function handleLogin(data: LoginFormValues): Promise<{ success: boo
       last_name: "User",
       account_type: "Personal",
       profile_completed_at: new Date().toISOString(),
-      pin_setup_completed_at: null, 
+      pin_setup_completed_at: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -133,11 +133,11 @@ export async function handleLogin(data: LoginFormValues): Promise<{ success: boo
 }
 
 
-export async function handleSignup(data: SignupFormValues): Promise<{ success: boolean; message?: string; user?: Partial<AppUser> }> { 
+export async function handleSignup(data: SignupFormValues): Promise<{ success: boolean; message?: string; user?: Partial<AppUser> }> {
   const validationResult = SignupFormSchema.safeParse(data);
   if (!validationResult.success) {
-    const errorMessages = validationResult.error.errors.map(err => \`\${err.path.join('.')}: \${err.message}\`).join(', ');
-    return { success: false, message: \`Invalid signup data: \${errorMessages}\` };
+    const errorMessages = validationResult.error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+    return { success: false, message: `Invalid signup data: ${errorMessages}` };
   }
 
   await new Promise(resolve => setTimeout(resolve, 1000));
@@ -154,7 +154,7 @@ export async function handlePinSetup(data: { pin: string, userId: string }): Pro
     return { success: false, message: "Invalid PIN format. Must be 4 digits." };
   }
   await new Promise(resolve => setTimeout(resolve, 1000));
-  console.log(\`Simulated PIN setup for user \${data.userId} with PIN: \${data.pin}\`);
+  console.log(`Simulated PIN setup for user ${data.userId} with PIN: ${data.pin}`);
   if (data.pin === "0000") {
       return { success: false, message: "PIN cannot be '0000'. Please choose a different PIN." };
   }
@@ -162,16 +162,17 @@ export async function handlePinSetup(data: { pin: string, userId: string }): Pro
 }
 
 export async function getSpecificImageByContextTag(contextTag: string): Promise<ImageData> {
-  console.log(\`[Action:getSpecificImageByContextTag] Fetching image for context_tag: \${contextTag}\`);
+  console.log(`[Action:getSpecificImageByContextTag] Fetching image for context_tag: ${contextTag}`);
   try {
     const imageData = await getImageByContextTag(contextTag);
-    console.log(\`[Action:getSpecificImageByContextTag] Fetched image data for \${contextTag}:\`, imageData);
+    console.log(`[Action:getSpecificImageByContextTag] Fetched image data for ${contextTag}:`, imageData);
     return imageData;
   } catch (error) {
-    console.error(\`[Action:getSpecificImageByContextTag] Error fetching image for \${contextTag}:\`, error);
+    console.error(`[Action:getSpecificImageByContextTag] Error fetching image for ${contextTag}:`, error);
     return {
-      imageUrl: 'https://placehold.co/600x400.png', 
+      imageUrl: 'https://placehold.co/600x400.png',
       altText: 'Error loading image'
     };
   }
 }
+
