@@ -70,8 +70,8 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
-        {/* Smartsupp Live Chat script - Direct implementation from Smartsupp */}
-        <Script id="smartsupp-v2" strategy="beforeInteractive">
+        {/* Smartsupp Live Chat script */}
+        <Script id="smartsupp-final-attempt" strategy="beforeInteractive">
           {`
             var _smartsupp = _smartsupp || {};
             _smartsupp.key = '96b3f10540afb961aa0ed8d42c1fd52dedc26a9a';
