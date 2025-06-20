@@ -9,9 +9,9 @@ import Footer from '@/components/layout/Footer';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react'; // Added useEffect
 import { Loader2 } from 'lucide-react';
-import Script from 'next/script';
+// Removed direct Script import from next/script as we are using useEffect for Tawk.to
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -47,25 +47,57 @@ interface LocaleLayoutProps {
   params: { locale: string };
 }
 
-export default async function LocaleLayout({
+export default function LocaleLayout({
   children,
   params,
 }: LocaleLayoutProps) {
   const locale = params.locale;
   let messages;
   try {
-    messages = await getMessages(locale);
-    // console.log(`[LocaleLayout] Successfully loaded messages for locale: ${locale}`);
+    messages = getMessages(locale);
   } catch (error) {
     console.error(`[LocaleLayout] Failed to load messages for locale: ${locale}. Error:`, error);
     try {
-        // console.warn(`[LocaleLayout] Attempting to fallback to 'en' messages for locale: ${locale}`);
-        messages = await getMessages('en');
+        messages = getMessages('en');
     } catch (fallbackError) {
         console.error(`[LocaleLayout] CRITICAL: Failed to load fallback 'en' messages. Error:`, fallbackError);
         messages = {};
     }
   }
+
+  useEffect(() => {
+    // Prevent loading multiple times
+    if (document.getElementById("tawk-script")) {
+      console.log('[FPX Markets - Tawk.to] Tawk.to script already present.');
+      return;
+    }
+
+    console.log('[FPX Markets - Tawk.to] Dynamically adding Tawk.to script...');
+    const script = document.createElement("script");
+    script.id = "tawk-script";
+    script.src = "https://embed.tawk.to/6854ad05a39e6f190afdf00c/1iu5c7o0v"; // Your widget ID
+    script.async = true;
+    script.charset = "UTF-8";
+    script.setAttribute("crossorigin", "*");
+    
+    script.onload = () => {
+      console.log('[FPX Markets - Tawk.to] Tawk.to script loaded successfully via dynamic append.');
+    };
+    script.onerror = () => {
+      console.error('[FPX Markets - Tawk.to] Failed to load Tawk.to script via dynamic append.');
+    };
+
+    document.body.appendChild(script);
+
+    // Optional: Clean up the script when the component unmounts,
+    // though for a chat widget, you usually want it to persist.
+    // return () => {
+    //   const existingScript = document.getElementById("tawk-script");
+    //   if (existingScript) {
+    //     document.body.removeChild(existingScript);
+    //   }
+    // };
+  }, []);
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -93,23 +125,13 @@ export default async function LocaleLayout({
           </AuthProvider>
         </Suspense>
         
-        {/* Start of Tawk.to Script */}
-        <Script id="tawkto-script" strategy="afterInteractive">
-          {`
-            var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-            (function(){
-            var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-            s1.async=true;
-            s1.src='https://embed.tawk.to/6854ad05a39e6f190afdf00c/1iu5c7o0v';
-            s1.charset='UTF-8';
-            s1.setAttribute('crossorigin','*');
-            s0.parentNode.insertBefore(s1,s0);
-            })();
-            console.log('[FPX Markets - Tawk.to] Tawk.to script initialized.');
-          `}
-        </Script>
-        {/* End of Tawk.to Script */}
-
+        {/* Tawk.to script is now loaded via useEffect */}
+        {/* NoScript part for Tawk.to - this can remain as it's for browsers with JS disabled */}
+        <noscript>
+          <a href="https://www.tawk.to/chat/6854ad05a39e6f190afdf00c/1iu5c7o0v" target="_blank" rel="noopener noreferrer">
+            Live Chat by Tawk.to
+          </a>
+        </noscript>
       </body>
     </html>
   );
