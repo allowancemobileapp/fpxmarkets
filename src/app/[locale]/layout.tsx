@@ -11,7 +11,9 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
-import Script from 'next/script'; // Import Script
+// Script import might still be needed if other scripts are used in head, otherwise it can be removed if no other head scripts.
+// For now, I'll keep it in case you add another script later. If not, we can remove it.
+import Script from 'next/script';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -63,29 +65,14 @@ export default async function LocaleLayout({
         messages = await getMessages('en');
     } catch (fallbackError) {
         console.error(`[LocaleLayout] CRITICAL: Failed to load fallback 'en' messages. Error:`, fallbackError);
-        messages = {}; 
+        messages = {};
     }
   }
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
-        {/* Smartsupp Live Chat script */}
-        <Script id="smartsupp-final-attempt" strategy="beforeInteractive">
-          {`
-            var _smartsupp = _smartsupp || {};
-            _smartsupp.key = '96b3f10540afb961aa0ed8d42c1fd52dedc26a9a';
-            window.smartsupp||(function(d) {
-              var s,c,o=smartsupp=function(){ o._.push(arguments)};o._=[];
-              s=d.getElementsByTagName('script')[0];c=d.createElement('script');
-              c.type='text/javascript';c.charset='utf-8';c.async=true;
-              c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
-            })(document);
-          `}
-        </Script>
-        <noscript>
-          <div dangerouslySetInnerHTML={{ __html: 'Powered by <a href="https://www.smartsupp.com" target="_blank" rel="noopener noreferrer">Smartsupp</a>' }} />
-        </noscript>
+        {/* Smartsupp script removed */}
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
         <Suspense fallback={<AuthLoader />}>
