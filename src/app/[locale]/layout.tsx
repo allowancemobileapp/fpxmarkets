@@ -9,9 +9,9 @@ import Footer from '@/components/layout/Footer';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { Suspense, useEffect } from 'react'; // Added useEffect
+import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
-// Removed direct Script import from next/script as we are using useEffect for Tawk.to
+import TawkToScript from '@/components/TawkToScript'; // Import the new client component
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -65,40 +65,6 @@ export default function LocaleLayout({
     }
   }
 
-  useEffect(() => {
-    // Prevent loading multiple times
-    if (document.getElementById("tawk-script")) {
-      console.log('[FPX Markets - Tawk.to] Tawk.to script already present.');
-      return;
-    }
-
-    console.log('[FPX Markets - Tawk.to] Dynamically adding Tawk.to script...');
-    const script = document.createElement("script");
-    script.id = "tawk-script";
-    script.src = "https://embed.tawk.to/6854ad05a39e6f190afdf00c/1iu5c7o0v"; // Your widget ID
-    script.async = true;
-    script.charset = "UTF-8";
-    script.setAttribute("crossorigin", "*");
-    
-    script.onload = () => {
-      console.log('[FPX Markets - Tawk.to] Tawk.to script loaded successfully via dynamic append.');
-    };
-    script.onerror = () => {
-      console.error('[FPX Markets - Tawk.to] Failed to load Tawk.to script via dynamic append.');
-    };
-
-    document.body.appendChild(script);
-
-    // Optional: Clean up the script when the component unmounts,
-    // though for a chat widget, you usually want it to persist.
-    // return () => {
-    //   const existingScript = document.getElementById("tawk-script");
-    //   if (existingScript) {
-    //     document.body.removeChild(existingScript);
-    //   }
-    // };
-  }, []);
-
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
@@ -125,8 +91,10 @@ export default function LocaleLayout({
           </AuthProvider>
         </Suspense>
         
-        {/* Tawk.to script is now loaded via useEffect */}
-        {/* NoScript part for Tawk.to - this can remain as it's for browsers with JS disabled */}
+        {/* Tawk.to script is now loaded via its own client component */}
+        <TawkToScript />
+        
+        {/* Fallback for browsers with JavaScript disabled */}
         <noscript>
           <a href="https://www.tawk.to/chat/6854ad05a39e6f190afdf00c/1iu5c7o0v" target="_blank" rel="noopener noreferrer">
             Live Chat by Tawk.to
