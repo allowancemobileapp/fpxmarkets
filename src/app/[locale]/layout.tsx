@@ -11,7 +11,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
-import TawkToScript from '@/components/TawkToScript'; // Import the new client component
+import LiveChatButton from '@/components/layout/LiveChatButton';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -86,20 +86,11 @@ export default function LocaleLayout({
                 </main>
                 <Footer />
                 <Toaster />
+                <LiveChatButton />
               </ThemeProvider>
             </NextIntlClientProvider>
           </AuthProvider>
         </Suspense>
-        
-        {/* Tawk.to script is now loaded via its own client component */}
-        <TawkToScript />
-        
-        {/* Fallback for browsers with JavaScript disabled */}
-        <noscript>
-          <a href="https://www.tawk.to/chat/6854ad05a39e6f190afdf00c/1iu5c7o0v" target="_blank" rel="noopener noreferrer">
-            Live Chat by Tawk.to
-          </a>
-        </noscript>
       </body>
     </html>
   );
