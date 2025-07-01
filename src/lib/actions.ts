@@ -18,7 +18,6 @@ const resendToEmail = process.env.RESEND_TO_EMAIL;
 
 let resend: Resend | null = null;
 
-// Initialize Resend only if all required environment variables are present
 if (resendApiKey && resendFromEmail && resendToEmail) {
   resend = new Resend(resendApiKey);
   console.log('[Action:Global] Resend SDK initialized.');
@@ -31,10 +30,6 @@ if (resendApiKey && resendFromEmail && resendToEmail) {
 
 export async function submitContactForm(data: ContactFormValues): Promise<{ success: boolean; message: string }> {
   console.log('[Action:submitContactForm] Received data:', JSON.stringify(data));
-  console.log('[Action:submitContactForm] Environment Vars Check:');
-  console.log(`[Action:submitContactForm] RESEND_API_KEY Loaded: ${resendApiKey ? 'Yes, first few chars: ' + resendApiKey.substring(0,5) + '...' : 'No'}`);
-  console.log(`[Action:submitContactForm] RESEND_FROM_EMAIL Loaded: ${resendFromEmail || 'No'}`);
-  console.log(`[Action:submitContactForm] RESEND_TO_EMAIL Loaded: ${resendToEmail || 'No'}`);
 
   const validationResult = ContactFormSchema.safeParse(data);
   if (!validationResult.success) {
@@ -42,31 +37,27 @@ export async function submitContactForm(data: ContactFormValues): Promise<{ succ
     return { success: false, message: "Invalid form data. Please check your input." };
   }
 
-  const { name, email, message } = validationResult.data;
-
   if (!resend) {
-    console.error('[Action:submitContactForm] Resend SDK is not initialized. One or more Resend environment variables are missing. Cannot send email.');
-    let missingVars = [];
-    if (!resendApiKey) missingVars.push("RESEND_API_KEY");
-    if (!resendFromEmail) missingVars.push("RESEND_FROM_EMAIL");
-    if (!resendToEmail) missingVars.push("RESEND_TO_EMAIL");
-    return { success: false, message: `Email service is not configured. Missing: ${missingVars.join(', ')}. Please contact support.` };
+    console.error('[Action:submitContactForm] Resend SDK is not initialized. One or more Resend environment variables are missing.');
+    return { success: false, message: "Email service is not configured on the server. Please contact support." };
   }
-  // These checks are now technically redundant if `resend` object is null, but good for clarity
-  if (!resendFromEmail) {
-    console.error('[Action:submitContactForm] RESEND_FROM_EMAIL environment variable is not set.');
-    return { success: false, message: "Email service is not configured. Please contact support. (From Email Missing)" };
+  if (!resendFromEmail || !resendToEmail) {
+    console.error('[Action:submitContactForm] Missing RESEND_FROM_EMAIL or RESEND_TO_EMAIL environment variables.');
+    return { success: false, message: "Email service is misconfigured. Please contact support." };
   }
-  if (!resendToEmail) {
-    console.error('[Action:submitContactForm] RESEND_TO_EMAIL environment variable is not set.');
-    return { success: false, message: "Email service is not configured. Please contact support. (To Email Missing)" };
-  }
+
+  const { name, email, message } = validationResult.data;
+  
+  // Resend requires the "from" address to be on a verified domain.
+  // We will format it as "Sender Name <email@verifieddomain.com>"
+  const fromAddress = `FPX Markets <${resendFromEmail}>`;
+  console.log(`[Action:submitContactForm] Preparing to send email. From: "${fromAddress}", To: "${resendToEmail}", Reply-To: "${email}"`);
+
 
   try {
-    console.log(`[Action:submitContactForm] Attempting to send email from ${resendFromEmail} to ${resendToEmail}`);
     const { data: resendData, error: resendError } = await resend.emails.send({
-      from: resendFromEmail, // e.g., 'FPX Markets <noreply@fpxmarkets.com>'
-      to: resendToEmail,     // e.g., 'fpxmarkets@gmail.com'
+      from: fromAddress,
+      to: resendToEmail,
       subject: `New Contact Form Submission from ${name} - FPX Markets`,
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6;">
@@ -80,7 +71,7 @@ export async function submitContactForm(data: ContactFormValues): Promise<{ succ
             <p style="margin: 0;">${message.replace(/\n/g, '<br>')}</p>
           </div>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="font-size: 0.9em; color: #777;">This email was sent from the contact form on fpxmarkets.com.</p>
+          <p style="font-size: 0.9em; color: #777;">This email was sent from the contact form on your website.</p>
         </div>
       `,
       reply_to: email,
@@ -88,14 +79,14 @@ export async function submitContactForm(data: ContactFormValues): Promise<{ succ
 
     if (resendError) {
       console.error('[Action:submitContactForm] Resend API Error:', JSON.stringify(resendError, null, 2));
-      return { success: false, message: `Failed to send message. Resend Error: ${resendError.message}` };
+      return { success: false, message: `Failed to send message. Error: ${resendError.message}` };
     }
 
     console.log('[Action:submitContactForm] Email sent successfully via Resend. ID:', resendData?.id);
     return { success: true, message: "Thank you for your message! We'll be in touch soon." };
   } catch (error: any) {
     console.error('[Action:submitContactForm] Exception sending email via Resend:', error);
-    return { success: false, message: "Failed to send message due to an unexpected error. Please try again later or contact support directly." };
+    return { success: false, message: "Failed to send message due to an unexpected server error." };
   }
 }
 
@@ -194,5 +185,3 @@ export async function getSpecificImageByContextTag(contextTag: string): Promise<
     };
   }
 }
-
-    
