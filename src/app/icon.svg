@@ -1,4 +1,9 @@
-<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="50" cy="50" r="48" fill="#FFD700"/>
-  <text x="50" y="52" font-family="Geist, sans-serif" font-size="40" font-weight="bold" fill="#0057B7" text-anchor="middle" dominant-baseline="central">FPX</text>
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="256" height="256" fill="#F7F5F2"/>
+<g transform="translate(-10, 0)">
+    <text x="40" y="160" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="95" font-weight="700" fill="#0D2A42">FP</text>
+    <path d="M162 65L181 65L231 195L211 195Z" fill="#0D2A42"/>
+    <path d="M231 65L211 65L162 195L181 195Z" fill="#29ABE2"/>
+    <path d="M230.5 65L244 65L230.5 88.5V65Z" fill="#29ABE2"/>
+</g>
 </svg>
