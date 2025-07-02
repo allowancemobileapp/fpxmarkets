@@ -5,14 +5,23 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Shield, Eye, Copy, CheckCircle } from 'lucide-react';
+import { Users, Shield, Eye, Copy, CheckCircle, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { useCopyTrading } from '@/contexts/CopyTradingContext'; // Import the context hook
-import { mockTraders } from '@/config/mockTraders'; // Import mockTraders
+import { useCopyTrading } from '@/contexts/CopyTradingContext';
+import { mockTraders } from '@/config/mockTraders';
 
 export default function CopyTradingPage() {
-  const { toggleCopyTrader, isTraderCopied } = useCopyTrading(); // Use the context
+  const { toggleCopyTrader, isTraderCopied, isLoading } = useCopyTrading();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full p-8">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="ml-4 text-muted-foreground">Loading your copied traders...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -89,5 +98,3 @@ export default function CopyTradingPage() {
     </div>
   );
 }
-
-    

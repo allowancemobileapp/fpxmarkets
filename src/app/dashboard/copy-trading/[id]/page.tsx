@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, UserCircle, BarChart2, Shield, CalendarDays, TrendingUp, Users, Copy, CheckCircle } from 'lucide-react';
+import { ArrowLeft, UserCircle, BarChart2, Shield, CalendarDays, TrendingUp, Users, Copy, CheckCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
@@ -16,16 +16,17 @@ import { useEffect, useState } from 'react'; // For handling client-side state
 export default function TraderProfilePage() {
   const params = useParams();
   const traderId = typeof params.id === 'string' ? params.id : '';
-  const { toggleCopyTrader, isTraderCopied } = useCopyTrading(); // Use the context
+  const { toggleCopyTrader, isTraderCopied, isLoading: isContextLoading } = useCopyTrading(); // Use the context
   
   const trader = mockTraders.find(t => t.id === traderId);
   const [isCopiedByCurrentUser, setIsCopiedByCurrentUser] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
 
   useEffect(() => {
-    if (trader) {
+    if (!isContextLoading && trader) {
       setIsCopiedByCurrentUser(isTraderCopied(trader.id));
     }
-  }, [trader, isTraderCopied]);
+  }, [trader, isTraderCopied, isContextLoading]);
 
   if (!trader) {
     return (
@@ -42,11 +43,14 @@ export default function TraderProfilePage() {
     );
   }
 
-  const handleToggleCopyFromProfile = () => {
-    toggleCopyTrader(trader.id, trader.username);
-    // Optimistically update local state, context will also update
-    setIsCopiedByCurrentUser(!isCopiedByCurrentUser); 
+  const handleToggleCopyFromProfile = async () => {
+    setIsToggling(true);
+    await toggleCopyTrader(trader.id, trader.username);
+    setIsToggling(false);
   };
+
+  const buttonIsDisabled = isContextLoading || isToggling;
+  const buttonText = isCopiedByCurrentUser ? `Stop Copying ${trader.username}` : `Copy ${trader.username}`;
 
   return (
     <div className="space-y-8">
@@ -142,9 +146,10 @@ export default function TraderProfilePage() {
                 size="lg" 
                 className="w-full"
                 onClick={handleToggleCopyFromProfile}
+                disabled={buttonIsDisabled}
             >
-              {isCopiedByCurrentUser ? <CheckCircle className="mr-2 h-5 w-5"/> : <Copy className="mr-2 h-5 w-5"/>}
-              {isCopiedByCurrentUser ? `Stop Copying ${trader.username}` : `Copy ${trader.username}`}
+              {buttonIsDisabled ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : (isCopiedByCurrentUser ? <CheckCircle className="mr-2 h-5 w-5"/> : <Copy className="mr-2 h-5 w-5"/>)}
+              {buttonIsDisabled ? "Processing..." : buttonText}
             </Button>
             <Button variant="outline" className="w-full" disabled>Message {trader.username} (Coming Soon)</Button>
           </div>
@@ -153,5 +158,3 @@ export default function TraderProfilePage() {
     </div>
   );
 }
-
-    

@@ -2,77 +2,127 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface CopyTradingContextType {
   copiedTraderIds: Set<string>;
-  toggleCopyTrader: (traderId: string, traderName: string) => void;
+  toggleCopyTrader: (traderId: string, traderName: string) => Promise<void>; // Make it async
   isTraderCopied: (traderId: string) => boolean;
   getCopiedTradersCount: () => number;
+  isLoading: boolean; // Add a loading state
 }
 
 const CopyTradingContext = createContext<CopyTradingContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_KEY = 'fpx_copied_trader_ids';
-
 export function CopyTradingProvider({ children }: { children: ReactNode }) {
   const [copiedTraderIds, setCopiedTraderIds] = useState<Set<string>>(new Set());
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const { appUser, initialAuthCheckDone } = useAuth();
   const { toast } = useToast();
 
+  // Fetch initial data from the database
   useEffect(() => {
-    // Load from localStorage on initial mount
-    try {
-      const storedIds = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (storedIds) {
-        setCopiedTraderIds(new Set(JSON.parse(storedIds)));
-      }
-    } catch (error) {
-      console.error("Error reading copied traders from localStorage:", error);
-      // Fallback to empty set if parsing fails
+    if (!initialAuthCheckDone) {
+      return; // Wait for auth check to complete
+    }
+
+    if (appUser?.firebase_auth_uid) {
+      setIsLoading(true);
+      fetch(`/api/user/copy-traders?firebaseAuthUid=${appUser.firebase_auth_uid}`)
+        .then(res => {
+          if (!res.ok) {
+            throw new Error('Failed to fetch copied traders');
+          }
+          return res.json();
+        })
+        .then(data => {
+          setCopiedTraderIds(new Set(data.traderIds || []));
+        })
+        .catch(error => {
+          console.error("Error fetching copied traders from DB:", error);
+          toast({
+            title: "Error",
+            description: "Could not load your list of copied traders.",
+            variant: "destructive",
+          });
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    } else {
+      // User is logged out or no appUser yet, clear the list and finish loading
       setCopiedTraderIds(new Set());
+      setIsLoading(false);
     }
-    setIsInitialized(true);
-  }, []);
+  }, [appUser, initialAuthCheckDone, toast]);
 
-  useEffect(() => {
-    // Save to localStorage whenever copiedTraderIds changes, but only after initialization
-    if (isInitialized) {
-      try {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(Array.from(copiedTraderIds)));
-      } catch (error) {
-        console.error("Error saving copied traders to localStorage:", error);
-      }
+  const toggleCopyTrader = useCallback(async (traderId: string, traderName: string) => {
+    if (!appUser?.firebase_auth_uid) {
+      toast({
+        title: "Not Authenticated",
+        description: "You must be logged in to copy traders.",
+        variant: "destructive",
+      });
+      return;
     }
-  }, [copiedTraderIds, isInitialized]);
 
-  const toggleCopyTrader = useCallback((traderId: string, traderName: string) => {
-    setCopiedTraderIds(prevIds => {
-      const newIds = new Set(prevIds);
-      let toastMessage = "";
-      let toastTitle = "";
+    const isCurrentlyCopied = copiedTraderIds.has(traderId);
+    const originalIds = new Set(copiedTraderIds);
+    let toastTitle = "";
+    let toastMessage = "";
 
-      if (newIds.has(traderId)) {
-        newIds.delete(traderId);
-        toastTitle = "Copy Stopped";
-        toastMessage = `You have stopped copying ${traderName}.`;
-      } else {
-        newIds.add(traderId);
-        toastTitle = "Copy Started";
-        toastMessage = `You are now copying ${traderName}.`;
+    // Optimistic UI update
+    const newIds = new Set(originalIds);
+    if (isCurrentlyCopied) {
+      newIds.delete(traderId);
+      toastTitle = "Copy Stopped";
+      toastMessage = `You have stopped copying ${traderName}.`;
+    } else {
+      newIds.add(traderId);
+      toastTitle = "Copy Started";
+      toastMessage = `You are now copying ${traderName}.`;
+    }
+    setCopiedTraderIds(newIds);
+
+    try {
+      const response = await fetch('/api/user/copy-traders', {
+        method: isCurrentlyCopied ? 'DELETE' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firebaseAuthUid: appUser.firebase_auth_uid,
+          traderId: traderId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('API request failed');
       }
       
-      // Defer toast to avoid state update issues during render
+      const result = await response.json();
+      console.log('Toggle copy trader result:', result);
+
+      // Show success toast on successful API call
       setTimeout(() => {
         toast({
           title: toastTitle,
           description: toastMessage,
         });
       }, 0);
-      
-      return newIds;
-    });
-  }, [toast]);
+
+    } catch (error) {
+      console.error('Failed to toggle copy trader:', error);
+      // Revert UI if API call fails
+      setCopiedTraderIds(originalIds);
+      toast({
+        title: "Error",
+        description: `Could not ${isCurrentlyCopied ? 'stop' : 'start'} copying ${traderName}. Please try again.`,
+        variant: "destructive",
+      });
+    }
+  }, [appUser, copiedTraderIds, toast]);
 
   const isTraderCopied = useCallback((traderId: string): boolean => {
     return copiedTraderIds.has(traderId);
@@ -82,15 +132,8 @@ export function CopyTradingProvider({ children }: { children: ReactNode }) {
     return copiedTraderIds.size;
   }, [copiedTraderIds]);
 
-  if (!isInitialized) {
-    // Optional: Render a loader or null while initializing from localStorage
-    // For simplicity, children are rendered, but context values might not be fully ready.
-    // A proper loader here would prevent children from accessing potentially incomplete state.
-    return null; // Or a loading spinner
-  }
-
   return (
-    <CopyTradingContext.Provider value={{ copiedTraderIds, toggleCopyTrader, isTraderCopied, getCopiedTradersCount }}>
+    <CopyTradingContext.Provider value={{ copiedTraderIds, toggleCopyTrader, isTraderCopied, getCopiedTradersCount, isLoading }}>
       {children}
     </CopyTradingContext.Provider>
   );
