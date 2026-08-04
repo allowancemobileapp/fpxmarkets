@@ -13,13 +13,13 @@ export default function ContactPage() {
       title="Contact Us"
       description="We're here to help. Reach out to our support team via phone, email, or by using the contact form below."
     >
-      <div className="mt-0"> {/* Adjusted margin, GenericPageLayout already has padding */}
+      <div className="mt-0">
         <ContactForm />
       </div>
       <div className="mt-12 text-center">
         <h3 className="text-2xl font-semibold text-primary mb-4">Other Ways to Reach Us</h3>
         <p className="text-muted-foreground mb-2">
-          <strong>Client Support Email:</strong> support@fpxmarkets-demo.com
+          <strong>Client Support Email:</strong> support@fpxmarkets.net
         </p>
         <p className="text-muted-foreground mb-2">
           <strong>Phone (Toll-Free):</strong> +1 (800) 555-0199

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -115,7 +114,7 @@ export default function SupportPage() {
                 <Mail className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
                 <div>
                   <h4 className="font-semibold">Email Support</h4>
-                  <p className="text-sm text-muted-foreground">support@fpxmarkets-demo.com</p>
+                  <p className="text-sm text-muted-foreground">support@fpxmarkets.net</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -127,7 +126,7 @@ export default function SupportPage() {
                 </div>
               </div>
                <Button variant="outline" className="w-full">
-                <MessageSquare className="mr-2 h-4 w-4" /> Start Live Chat (Coming Soon)
+                <MessageSquare className="mr-2 h-4 w-4" /> Start Live Chat
               </Button>
             </CardContent>
           </Card>
