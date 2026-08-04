@@ -22,7 +22,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'FPX Markets - Online Trading Platform',
-  description: 'Your premier destination for online trading. Forex, Shares, Commodities, and more.',
+  description: 'Your premier destination for online trading on fpxmarkets.net. Forex, Shares, Commodities, and more.',
 };
 
 const AuthLoader = () => (

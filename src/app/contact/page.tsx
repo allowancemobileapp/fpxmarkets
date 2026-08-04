@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Contact Us - FPX Markets',
-  description: 'Get in touch with FPX Markets. Find our contact details, office locations, or use our contact form for support.',
+  description: 'Get in touch with FPX Markets. Reach out to our support team at support@fpxmarkets.net for any inquiries.',
 };
 
 export default function ContactPage() {

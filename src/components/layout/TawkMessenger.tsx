@@ -4,12 +4,10 @@ import { useEffect } from 'react';
 
 /**
  * TawkMessenger component
- * Handles the client-side initialization of the Tawk.to live chat widget.
- * This approach is more reliable for Next.js 15 hydration than a raw <Script> tag.
+ * Handles the client-side initialization of the Tawk.to live chat widget for fpxmarkets.net.
  */
 export default function TawkMessenger() {
   useEffect(() => {
-    // Only run on the client
     if (typeof window === 'undefined') return;
 
     // @ts-ignore - Tawk_API is global
@@ -21,6 +19,7 @@ export default function TawkMessenger() {
       const s1 = document.createElement("script");
       const s0 = document.getElementsByTagName("script")[0];
       s1.async = true;
+      // Using your confirmed .net script ID
       s1.src = 'https://embed.tawk.to/6854ad05a39e6f190afdf00c/1iu5c7o0v';
       s1.charset = 'UTF-8';
       s1.setAttribute('crossorigin', '*');

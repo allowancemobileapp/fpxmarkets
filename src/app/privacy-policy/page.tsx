@@ -8,14 +8,14 @@ export default function PrivacyPolicyPage() {
   const [lastRevisedDate, setLastRevisedDate] = useState('');
 
   useEffect(() => {
-    const exampleDate = new Date(2024, 11, 20);
+    const exampleDate = new Date(2025, 0, 1);
     setLastRevisedDate(format(exampleDate, 'MMMM do, yyyy'));
   }, []);
 
   return (
     <GenericPageLayout
       title="Privacy Policy"
-      description="Your privacy is important to us. This policy outlines our practices concerning the collection, use, and disclosure of your information."
+      description="Your privacy is important to us. This policy outlines how fpxmarkets.net collects, uses, and protects your information."
     >
       <div className="space-y-6 text-foreground">
         <p className="text-sm text-muted-foreground">
@@ -24,9 +24,14 @@ export default function PrivacyPolicyPage() {
 
         <h2 className="text-xl font-semibold text-primary pt-4">Introduction</h2>
         <p>
-          FPX Markets (“us“, “we”, or “Company“) respects the privacy of our users (each, “you” or “User“) and is committed to protecting the privacy of Users who access our website, our mobile application, or any other online services we provide (collectively: the “Services“).
+          FPX Markets (“us“, “we”, or “Company“) respects the privacy of our users (each, “you” or “User“) and is committed to protecting the privacy of Users who access our website fpxmarkets.net, our mobile application, or any other online services we provide (collectively: the “Services“).
         </p>
         
+        <h2 className="text-xl font-semibold text-primary pt-4">Data Usage</h2>
+        <p>
+          We use your data to provide and improve the Services. By using the Services, you agree to the collection and use of information in accordance with this policy.
+        </p>
+
         <h2 className="text-xl font-semibold text-primary pt-4">Contact Us</h2>
         <p className="text-muted-foreground">
           If you have any questions or concerns about this Privacy Policy or our data practices, please contact us at:
