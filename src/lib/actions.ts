@@ -1,4 +1,3 @@
-
 'use server';
 
 import { Resend } from 'resend';
@@ -41,23 +40,19 @@ export async function submitContactForm(data: ContactFormValues): Promise<{ succ
     console.error('[Action:submitContactForm] Resend SDK is not initialized. One or more Resend environment variables are missing.');
     return { success: false, message: "Email service is not configured on the server. Please contact support." };
   }
-  if (!resendFromEmail || !resendToEmail) {
-    console.error('[Action:submitContactForm] Missing RESEND_FROM_EMAIL or RESEND_TO_EMAIL environment variables.');
-    return { success: false, message: "Email service is misconfigured. Please contact support." };
-  }
+  
+  const fromEmailToUse = resendFromEmail || 'hello@fpxmarkets.net';
+  const toEmailToUse = resendToEmail || 'support@fpxmarkets.net';
 
   const { name, email, message } = validationResult.data;
   
-  // Resend requires the "from" address to be on a verified domain.
-  // We will format it as "Sender Name <email@verifieddomain.com>"
-  const fromAddress = `FPX Markets <${resendFromEmail}>`;
-  console.log(`[Action:submitContactForm] Preparing to send email. From: "${fromAddress}", To: "${resendToEmail}", Reply-To: "${email}"`);
-
+  const fromAddress = `FPX Markets <${fromEmailToUse}>`;
+  console.log(`[Action:submitContactForm] Sending email. From: "${fromAddress}", To: "${toEmailToUse}"`);
 
   try {
     const { data: resendData, error: resendError } = await resend.emails.send({
       from: fromAddress,
-      to: resendToEmail,
+      to: toEmailToUse,
       subject: `New Contact Form Submission from ${name} - FPX Markets`,
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6;">
@@ -71,7 +66,7 @@ export async function submitContactForm(data: ContactFormValues): Promise<{ succ
             <p style="margin: 0;">${message.replace(/\n/g, '<br>')}</p>
           </div>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="font-size: 0.9em; color: #777;">This email was sent from the contact form on your website.</p>
+          <p style="font-size: 0.9em; color: #777;">This email was sent from fpxmarkets.net</p>
         </div>
       `,
       reply_to: email,
@@ -82,103 +77,29 @@ export async function submitContactForm(data: ContactFormValues): Promise<{ succ
       return { success: false, message: `Failed to send message. Error: ${resendError.message}` };
     }
 
-    console.log('[Action:submitContactForm] Email sent successfully via Resend. ID:', resendData?.id);
+    console.log('[Action:submitContactForm] Email sent successfully. ID:', resendData?.id);
     return { success: true, message: "Thank you for your message! We'll be in touch soon." };
   } catch (error: any) {
-    console.error('[Action:submitContactForm] Exception sending email via Resend:', error);
+    console.error('[Action:submitContactForm] Exception sending email:', error);
     return { success: false, message: "Failed to send message due to an unexpected server error." };
   }
 }
 
 export async function getAIMarketInsights(input: MarketInsightsInput): Promise<MarketInsightsOutput | { error: string }> {
   try {
-    console.log("[Action:getAIMarketInsights] Calling generateMarketInsightsFlow with input:", input);
     const result = await generateMarketInsightsFlow(input);
-    console.log("[Action:getAIMarketInsights] Received result:", result);
     return result;
-  } catch (error: any)
-    {
+  } catch (error: any) {
     console.error("[Action:getAIMarketInsights] Error generating market insights:", error);
-    let errorMessage = "Failed to generate market insights. Please try again later.";
-    if (error.message) {
-      errorMessage += ` Details: ${error.message}`;
-    }
-    if (error.stack) {
-      console.error("[Action:getAIMarketInsights] Error stack:", error.stack);
-    }
-    if (error.response && error.response.data) {
-        console.error("[Action:getAIMarketInsights] API Error Data:", error.response.data);
-        errorMessage += ` API Response: ${JSON.stringify(error.response.data)}`;
-    }
-    return { error: errorMessage };
+    return { error: "Failed to generate market insights. Please try again later." };
   }
-}
-
-// Simulated Login Action
-export async function handleLogin(data: LoginFormValues): Promise<{ success: boolean; message?: string; user?: AppUser }> { // Changed User to AppUser
-  const validationResult = LoginFormSchema.safeParse(data);
-  if (!validationResult.success) {
-    return { success: false, message: "Invalid login data." };
-  }
-
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  if (data.email === "user@example.com" && data.password === "password123") {
-    const mockUser: AppUser = {
-      id: "user123",
-      firebase_auth_uid: "firebaseUser123",
-      email: "user@example.com",
-      username: "TestUser",
-      first_name: "Test",
-      last_name: "User",
-      account_type: "Personal",
-      profile_completed_at: new Date().toISOString(),
-      pin_setup_completed_at: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    return { success: true, user: mockUser };
-  }
-  return { success: false, message: "Invalid email or password." };
-}
-
-
-export async function handleSignup(data: SignupFormValues): Promise<{ success: boolean; message?: string; user?: Partial<AppUser> }> {
-  const validationResult = SignupFormSchema.safeParse(data);
-  if (!validationResult.success) {
-    const errorMessages = validationResult.error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
-    return { success: false, message: `Invalid signup data: ${errorMessages}` };
-  }
-
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  console.log("Simulated backend signup processing for email:", data.email);
-  const partialUser: Partial<AppUser> = {
-    email: data.email,
-  };
-  return { success: true, user: partialUser, message: "Signup process initiated. Complete profile next." };
-}
-
-
-export async function handlePinSetup(data: { pin: string, userId: string }): Promise<{ success: boolean; message?: string }> {
-  if (!/^\\d{4}$/.test(data.pin)) {
-    return { success: false, message: "Invalid PIN format. Must be 4 digits." };
-  }
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  console.log(`Simulated PIN setup for user ${data.userId} with PIN: ${data.pin}`);
-  if (data.pin === "0000") {
-      return { success: false, message: "PIN cannot be '0000'. Please choose a different PIN." };
-  }
-  return { success: true, message: "Trading PIN successfully set." };
 }
 
 export async function getSpecificImageByContextTag(contextTag: string): Promise<ImageData> {
-  console.log(`[Action:getSpecificImageByContextTag] Fetching image for context_tag: ${contextTag}`);
   try {
     const imageData = await getImageByContextTag(contextTag);
-    console.log(`[Action:getSpecificImageByContextTag] Fetched image data for ${contextTag}:`, imageData);
     return imageData;
   } catch (error) {
-    console.error(`[Action:getSpecificImageByContextTag] Error fetching image for ${contextTag}:`, error);
     return {
       imageUrl: 'https://placehold.co/600x400.png',
       altText: 'Error loading image'

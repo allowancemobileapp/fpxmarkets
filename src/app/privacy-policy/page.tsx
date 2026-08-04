@@ -8,7 +8,7 @@ export default function PrivacyPolicyPage() {
   const [lastRevisedDate, setLastRevisedDate] = useState('');
 
   useEffect(() => {
-    const exampleDate = new Date(2017, 1, 5);
+    const exampleDate = new Date(2024, 11, 20);
     setLastRevisedDate(format(exampleDate, 'MMMM do, yyyy'));
   }, []);
 
@@ -27,7 +27,7 @@ export default function PrivacyPolicyPage() {
           FPX Markets (“us“, “we”, or “Company“) respects the privacy of our users (each, “you” or “User“) and is committed to protecting the privacy of Users who access our website, our mobile application, or any other online services we provide (collectively: the “Services“).
         </p>
         
-        <h2 className="text-xl font-semibold text-primary pt-4">12. How to Contact Us</h2>
+        <h2 className="text-xl font-semibold text-primary pt-4">Contact Us</h2>
         <p className="text-muted-foreground">
           If you have any questions or concerns about this Privacy Policy or our data practices, please contact us at:
         </p>
@@ -37,7 +37,7 @@ export default function PrivacyPolicyPage() {
 
         <div className="mt-8 pt-6 border-t border-border">
             <p className="text-xs text-muted-foreground italic">
-                <strong>Disclaimer:</strong> This is a sample Privacy Policy provided for illustrative purposes only. It is not a substitute for professional legal advice.
+                <strong>Disclaimer:</strong> This Privacy Policy governs the use of fpxmarkets.net and all related services.
             </p>
         </div>
       </div>

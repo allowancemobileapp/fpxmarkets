@@ -8,7 +8,7 @@ export default function TermsOfServicePage() {
   const [lastRevisedDate, setLastRevisedDate] = useState('');
 
   useEffect(() => {
-    setLastRevisedDate(format(new Date(), 'MMMM do, yyyy'));
+    setLastRevisedDate(format(new Date(2024, 11, 20), 'MMMM do, yyyy'));
   }, []);
 
   return (
@@ -23,7 +23,7 @@ export default function TermsOfServicePage() {
 
         <h2 className="text-xl font-semibold text-primary pt-4">1. Acceptance of Terms</h2>
         <p className="text-muted-foreground">
-          By accessing and using the FPX Markets website and services (collectively, the "Services"), you accept and agree to be bound by the terms and provision of this agreement.
+          By accessing and using the FPX Markets website (fpxmarkets.net) and services (collectively, the "Services"), you accept and agree to be bound by the terms and provision of this agreement.
         </p>
 
         <h2 className="text-xl font-semibold text-primary pt-4">10. Contact Us</h2>
@@ -33,7 +33,7 @@ export default function TermsOfServicePage() {
 
         <div className="mt-8 pt-6 border-t border-border">
             <p className="text-xs text-muted-foreground italic">
-                <strong>Disclaimer:</strong> This is a sample Terms of Service document provided for illustrative purposes only.
+                <strong>Disclaimer:</strong> These terms govern your relationship with FPX Markets.
             </p>
         </div>
       </div>
